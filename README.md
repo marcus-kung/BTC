@@ -1,112 +1,465 @@
-# Bloomberg Trading Challenge — Portfolio & Risk Dashboard
 
-An interactive, **offline Streamlit dashboard** for building and reviewing an equity portfolio using pre-processed stock-screening results from the Bloomberg World Large, Mid & Small Cap (WLS) universe.
+# Bloomberg Trading Challenge (BTC)
 
-The application helps a trading team search candidate stocks, adjust portfolio weights, monitor concentration, and test hypothetical losses **without downloading new prices from Yahoo Finance**.
+## 1. Project Overview
 
-> **Scope:** This is a *portfolio construction and scenario-analysis tool*, not a live trading or performance-tracking system. It does not connect to a brokerage or Bloomberg Terminal.
+This repository contains Python tools developed for the Bloomberg Trading Challenge 2026.
 
-## What it can do
+The project supports stock screening, market data collection, portfolio construction and risk analysis. It is designed to help our team evaluate a large universe of stocks, select a diversified portfolio and monitor its performance against the Bloomberg WLS Index.
 
-| Feature | Description |
-| --- | --- |
-| Import a portfolio | Load holdings and target weights from an Excel workbook such as `Starting Portfolio.xlsx`. |
-| Search the WLS universe | Search processed stocks by Yahoo Finance ticker or company name and add them to the portfolio. |
-| Adjust holdings | Change a selected stock's target weight with a slider. Other holdings rebalance proportionally to keep total weights at 100%. |
-| Remove holdings | Remove one stock or delete several at once; remaining weights are redistributed proportionally. At least one holding must remain. |
-| Review exposures | View allocation by position, sector, country, and industry. |
-| Evaluate concentration | Review the largest positions and other portfolio concentration measures. |
-| Review screening metrics | Examine precomputed momentum, six-month volatility, beta to WLS, drawdown, and screening scores, including weighted summaries. |
-| Stress-test scenarios | Model instantaneous shocks to a stock, sector, industry, or country. |
-| Export the portfolio | Download the updated allocation and exposure tables as an Excel workbook for later import or team review. |
+**Main objectives:**
+- Screen and rank stocks using financial and market data.
+- Retrieve and enrich company information using Yahoo Finance.
+- Analyse historical stock prices and returns.
+- Construct and monitor a portfolio of approximately 10–12 stocks.
+- Compare portfolio performance against the WLS benchmark.
+- Analyse sector exposure, correlations and downside risk.
 
-## Project layout
+## 2. Repository Structure
 
 ```text
-trading_dashboard/
-├── app.py                  # Streamlit user interface
-├── portfolio.py            # Import, weighting, exposure and stress-test calculations
-├── requirements.txt        # Python dependencies
-├── data/
-│   ├── Starting Portfolio.xlsx
-│   └── WLS_Candidate_Shortlist_1_enriched_yahoo_enriched.xlsx
-├── tests/
-│   └── test_portfolio.py
-└── README.md
+BTC/
+├── data/                     # Input datasets (may be stored locally)
+├── trading_dashboard/        # Portfolio monitoring and risk analysis
+├── yahoo_enrichment/         # Company information and data enrichment
+├── WLS Stock Screening .../  # Stock screening code and datasets
+├── .gitignore                # Files excluded from Git tracking
+└── README.md                 # Project documentation
 ```
 
-The two workbooks in `data/` are the default inputs. If those datasets are not included in a shared repository, users must supply compatible versions in that location before launching the app. The sidebar also supports uploading replacement workbooks.
+Some folders may contain their own scripts, data files and dependencies.
 
-## Getting started
+## 3. Getting Started
 
-**Prerequisites:** Python 3.10+ and `pip`. These commands work in a macOS/Linux terminal; on Windows, use the corresponding environment activation command.
+### Step 1 — Install the required software
 
-From the repository's `trading_dashboard` folder:
+You will need:
+
+- Python 3.10 or newer (subject to individual script requirements)
+- Visual Studio Code (VS Code)
+- Git
+- A GitHub account
+
+Useful links:
+
+- Python: https://www.python.org/downloads/
+- VS Code: https://code.visualstudio.com/
+- Git: https://git-scm.com/downloads/
+- GitHub: https://github.com/
+
+### Step 2 — Clone the repository
+
+Open VS Code and press:
+
+**Mac:** `Cmd + Shift + P`  
+**Windows:** `Ctrl + Shift + P`
+
+Type `Git: Clone`, select it, and paste:
+
+```bash
+https://github.com/marcus-kung/BTC.git
+```
+
+Choose a folder where you want the project stored.
+
+Once cloning finishes, select **Open**.
+
+Alternatively, use the terminal:
+
+```bash
+git clone https://github.com/marcus-kung/BTC.git
+cd BTC
+code .
+```
+
+If `code .` is not configured, open the folder manually using **File → Open Folder** in VS Code.
+
+**Important:** If you have already cloned the repository, open the existing folder rather than cloning another copy.
+
+### Step 3 — Create a Python virtual environment
+
+Open the VS Code terminal:
+
+**Terminal → New Terminal**
+
+Make sure the terminal is inside the `BTC` directory.
+
+Create a virtual environment:
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m streamlit run app.py
 ```
 
-For Windows PowerShell, activate the environment with `.venv\Scripts\Activate.ps1` instead.
+Activate it:
 
-Streamlit will display a local URL (usually `http://localhost:8501`). Open it in your browser. **Internet is only needed to install dependencies**, not for the dashboard's portfolio calculations.
-
-If you already use a virtual environment in a parent `BTC/` folder, activate that environment and run `python -m streamlit run trading_dashboard/app.py` from `BTC/` instead.
-
-## Using the dashboard
-
-1. **Load the data.** The app loads the default WLS rankings and starting portfolio from `data/`. Alternatively, upload newer `.xlsx` files in the sidebar.
-2. **Review the imported portfolio.** Check that weights, capital/notional and classifications look correct. Imported weights are not silently changed; use the *Normalise portfolio weights to 100%* control if necessary.
-3. **Add a company.** Search the processed WLS rankings by name or ticker and click *Add selected stock*. A newly added stock starts at **0%** weight.
-4. **Set a target weight.** Choose a holding, move its slider and click *Apply weighting*. The remaining weights change proportionally so that the portfolio stays fully allocated.
-5. **Remove holdings if required.** Use *Remove holding* for an individual stock or *Delete selected holdings* to remove several. You can use *Reset to uploaded portfolio* to restore the imported allocations.
-6. **Inspect risk exposures.** Review the Positions, Sectors, Countries and Industries tabs, along with portfolio characteristics and concentration measures.
-7. **Run a stress test.** Apply a hypothetical price decline to a stock or an entire sector/country/industry and review the estimated impact on portfolio value.
-8. **Export your changes.** Select *Download portfolio and exposure workbook*. The exported allocation can be imported again later.
-
-### How weight adjustments work
-
-Suppose a portfolio contains three positions weighted at 50%, 30% and 20%. If the 30% holding is deleted, the other two positions become approximately **71.43%** and **28.57%**, preserving their relative proportions.
-
-Likewise, increasing one holding's weight reduces the others proportionally. These are **target allocation changes**, not executed trades.
-
-## Data sources and requirements
-
-- **WLS candidate workbook:** The `Full Rankings` sheet contains company identifiers and precomputed screening values, including momentum, volatility, beta, drawdown and ranking score. The dataset used to build this project contains approximately **9,105 ranked stock records**, rather than the full original Bloomberg universe.
-- **Starting/current portfolio:** An Excel workbook with holdings and allocation weights; the supplied example has **20 holdings** with a notional value of **1,000,000**. The currency is not specified in the source and is not assumed by the application.
-- **Company classification:** Sector and industry come from the processed/enriched workbook. Country may come from the imported portfolio or available shortlist metadata. Unresolved classifications are shown as `Unknown`.
-
-The app does not perform new Yahoo Finance lookups. Updating the underlying stock screening or correcting company metadata must be done separately, then supplied through a refreshed workbook.
-
-## Interpretation and limitations
-
-- **Not live performance:** There is no daily price history, transaction ledger, benchmark time series, or live market-data connection. The dashboard **does not** calculate realised portfolio return, return contribution, historical stock correlations, tracking error, or actual relative return against WLS.
-- **Risk metrics:** Weighted averages of individual-stock volatility or drawdown **are not** portfolio volatility or drawdown. Weighted beta is an approximation based on the precomputed stock betas.
-- **Scenario estimates:** Stress tests use static price shocks and current portfolio weights; they do not model correlations, liquidity, contagion, transaction costs or hedging responses.
-- **Geography:** Missing or inconsistent country classifications can understate or misrepresent geographic exposure. Do not infer a company's domicile solely from its ticker suffix.
-- **Currency:** Portfolio notional is treated as a single currency; the app does not convert positions using FX rates.
-- **Coverage:** Some stocks may have incomplete company metadata or screening metrics; check missing-value indicators before making portfolio decisions.
-
-## Sharing and collaboration
-
-You can run this project locally or deploy it using [Streamlit Community Cloud](https://streamlit.io/cloud). For cloud deployment, host the code in GitHub, include the permitted input workbooks or provide another approved way to upload them, and select `app.py` as the entry point when the repository root is this folder.
-
-**Portfolio edits are session-specific.** Changes to sliders and holdings are not automatically shared between users. Download the portfolio workbook to share a proposed allocation; a collaborative, persistent master portfolio would require additional storage and access controls.
-
-**Data-use note:** Before pushing Excel files to a public GitHub repository or a cloud service, verify that your Bloomberg-derived data and any other licensed datasets may be redistributed or hosted there. If not, keep those files out of the repository and provide them only through an authorised channel.
-
-## Tests
-
-From the dashboard folder, after installing `pytest` if necessary:
+**macOS / Linux**
 
 ```bash
-python -m pip install pytest
-python -m pytest tests/
+source .venv/bin/activate
 ```
 
-## Intended use
+**Windows PowerShell**
 
-This project was developed to support stock selection, portfolio construction and risk reviews for the **2026 Bloomberg Trading Challenge**. It is an analytical aid and should not be treated as investment advice or an execution system.
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+You should now see `(.venv)` at the beginning of your terminal prompt.
+
+### Step 4 — Install Python dependencies
+
+If the relevant project folder contains a `requirements.txt` file, install its dependencies.
+
+For example:
+
+```bash
+python -m pip install -r yahoo_enrichment/requirements.txt
+```
+
+Repeat for other subprojects as necessary.
+
+If a script reports a missing Python package, check its imports and the relevant requirements file.
+
+### Step 5 — Select the Python interpreter
+
+In VS Code:
+
+1. Press `Cmd + Shift + P` (Mac) or `Ctrl + Shift + P` (Windows).
+2. Select `Python: Select Interpreter`.
+3. Choose the Python interpreter located inside `.venv`.
+
+This ensures your scripts use the correct Python environment.
+
+## 4. Using the Project
+
+The repository is divided into several components.
+
+### Stock Screening
+
+The stock screening files are used to investigate the Bloomberg WLS stock universe and identify potential investments.
+
+Typical workflow:
+
+1. Obtain the relevant stock universe and ticker data.
+2. Prepare the screening dataset.
+3. Run the relevant screening scripts.
+4. Review stock rankings and shortlisted candidates.
+5. Share findings with the team.
+
+### Yahoo Finance Enrichment
+
+The `yahoo_enrichment/` directory contains tools for retrieving company information, including:
+
+- Company names
+- Tickers
+- Sectors
+- Industries
+
+Some scripts read an existing Excel workbook, retrieve company metadata through `yfinance`, and write enriched results.
+
+Check the individual script's required inputs and command-line arguments before running it.
+
+### Trading Dashboard
+
+The `trading_dashboard/` directory contains portfolio analysis tools.
+
+Its intended functionality includes:
+
+- Portfolio and benchmark returns
+- Relative performance
+- Stock and sector weights
+- Correlations
+- Return contributions
+- Stress testing
+
+Use the relevant input files and run the dashboard script according to its own configuration.
+
+### Running Python Scripts
+
+From the VS Code terminal, navigate to the appropriate folder:
+
+```bash
+cd yahoo_enrichment
+```
+
+Then run the relevant script:
+
+```bash
+python YOUR_SCRIPT_NAME.py
+```
+
+Replace `YOUR_SCRIPT_NAME.py` with the actual filename.
+
+For scripts supporting command-line options, you can often inspect usage using:
+
+```bash
+python YOUR_SCRIPT_NAME.py --help
+```
+
+Return to the repository root using:
+
+```bash
+cd ..
+```
+
+## 5. Git and GitHub: Beginner's Guide
+
+Git tracks changes to project files. GitHub stores the shared repository online so team members can collaborate.
+
+### Key Terminology
+
+| Term | Meaning |
+|------|---------|
+| Repository | A project folder tracked by Git |
+| Clone | Download a GitHub repository onto your computer |
+| Branch | A separate line of development |
+| Commit | Save a snapshot of your changes locally |
+| Push | Upload your commits to GitHub |
+| Pull | Download and integrate changes from GitHub |
+| Merge | Combine changes from different branches |
+| Pull Request (PR) | Request to merge changes into another branch |
+| `.gitignore` | Specifies files and folders Git should ignore |
+
+### Check Your Git Status
+
+Always open the terminal inside the repository folder.
+
+```bash
+git status
+```
+
+This displays your current branch and any changed or untracked files.
+
+To check your branch:
+
+```bash
+git branch --show-current
+```
+
+To view available branches without opening the Git pager:
+
+```bash
+git --no-pager branch -a
+```
+
+### Download the Latest Changes
+
+Before starting work, update your local `main` branch:
+
+```bash
+git switch main
+git pull --ff-only origin main
+```
+
+If you have uncommitted changes, resolve or save them before switching branches or pulling.
+
+### Recommended Workflow: Create Your Own Branch
+
+When working collaboratively, avoid making all changes directly on `main`.
+
+First, update `main`:
+
+```bash
+git switch main
+git pull --ff-only origin main
+```
+
+Then create a branch for your task:
+
+```bash
+git switch -c feature/my-task
+```
+
+Replace `my-task` with a descriptive name, such as:
+
+```bash
+git switch -c feature/improve-dashboard
+```
+
+Make your changes in VS Code and save the files.
+
+### Stage Your Changes
+
+Check which files have changed:
+
+```bash
+git status
+```
+
+Stage a specific file:
+
+```bash
+git add path/to/file.py
+```
+
+Alternatively, stage all changes:
+
+```bash
+git add .
+```
+
+**Caution:** `git add .` stages all eligible files, so check that you are not accidentally including datasets, temporary files or secrets.
+
+### Commit Your Changes
+
+Save the staged changes as a Git commit:
+
+```bash
+git commit -m "Improve portfolio dashboard"
+```
+
+Use short, descriptive commit messages.
+
+### Push Your Branch to GitHub
+
+For a new feature branch:
+
+```bash
+git push -u origin feature/my-task
+```
+
+Replace `feature/my-task` with your branch name.
+
+You can now see your branch on GitHub.
+
+### Create a Pull Request
+
+1. Open the BTC repository on GitHub.
+2. Select **Compare & pull request** for your branch, or open the **Pull requests** tab.
+3. Choose `main` as the target branch.
+4. Describe your changes.
+5. Submit the pull request.
+6. Review and merge the changes after approval.
+
+This allows teammates to inspect changes before they are added to the main project.
+
+### Update Your Local Main Branch After a Merge
+
+Once your pull request has been merged:
+
+```bash
+git switch main
+git pull --ff-only origin main
+```
+
+Your local `main` will now contain the latest changes.
+
+### Direct Pushes to Main
+
+If you have permission and direct pushes are allowed:
+
+```bash
+git switch main
+git pull --ff-only origin main
+git add path/to/file.py
+git commit -m "Update documentation"
+git push origin main
+```
+
+For team collaboration, feature branches and pull requests are generally preferred.
+
+## 6. Files That Should Not Be Uploaded
+
+Avoid committing:
+
+- Python virtual environments (`.venv/`)
+- Python cache files (`__pycache__/`)
+- macOS metadata files (`.DS_Store`)
+- API keys and authentication credentials
+- Large temporary datasets
+- Generated output files that do not need version control
+
+A basic `.gitignore` might contain:
+
+```gitignore
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+```
+
+The `data/` directory can also be ignored if its contents are intended to remain local.
+
+**Note:** `.gitignore` does not automatically remove files that Git is already tracking.
+
+## 7. Common Git Problems
+
+### "Not a git repository"
+
+You are probably using the terminal outside the cloned repository.
+
+Check:
+
+```bash
+pwd
+```
+
+Navigate into the correct directory:
+
+```bash
+cd /path/to/BTC
+```
+
+Then run:
+
+```bash
+git status
+```
+
+### "No commits yet"
+
+This usually means you initialised a new local repository instead of using the existing GitHub history.
+
+Do not create an unrelated initial commit if the GitHub repository already contains commits.
+
+Clone the existing repository or connect your local folder to the remote history carefully.
+
+### Push Rejected
+
+Your branch may be behind GitHub, or direct pushes to `main` may be restricted.
+
+Check:
+
+```bash
+git status
+git remote -v
+```
+
+If you're on `main` and have committed local changes, you may need to pull and resolve any conflicts before pushing.
+
+If `main` is protected, use a feature branch and pull request.
+
+### Merge Conflicts
+
+A merge conflict occurs when Git cannot automatically combine competing changes.
+
+Open the affected files in VS Code, review both versions, resolve the conflict, and complete the merge or rebase.
+
+Do not force-push to `main` as a workaround.
+
+## 8. Recommended Team Workflow
+
+For every contribution:
+
+1. **Pull** the latest version of `main`.
+2. **Create** a branch for your task.
+3. **Edit and test** your code locally.
+4. **Commit** your changes with a descriptive message.
+5. **Push** the branch to GitHub.
+6. **Open a pull request** for review.
+7. **Merge** once approved.
+8. **Pull** the updated `main` branch before starting your next task.
+
+For large datasets and shared deliverables, use the team's shared file storage where appropriate, keeping the GitHub repository focused on code, configuration and documentation.
+
+---
+
+## Repository
+
+GitHub: https://github.com/marcus-kung/BTC
+
+**Project:** Bloomberg Trading Challenge 2026  
+**Language:** Python  
+**Tools:** VS Code, Git, GitHub, Yahoo Finance, Excel
+
