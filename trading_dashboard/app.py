@@ -1,14 +1,24 @@
+
+# ============================================================
+# SECTION 1: IMPORTS
+# ============================================================
+# Load libraries for file paths, data tables, dashboard controls,
+# charts, and reusable portfolio calculations.
 from pathlib import Path
+from io import BytesIO
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 from portfolio import (read_rankings,read_starting_portfolio,enrich_holdings,set_weight,
     normalize_weights,remove_holdings,breakdown,weighted_metric,stress,export_portfolio)
 
+# ============================================================
+# SECTION 2: APP SETTINGS AND DEFAULT FILES
+# ============================================================
+# Configure the page and identify possible locations for
+# the rankings workbook and starting portfolio.
 st.set_page_config(page_title='BTC Portfolio Construction',layout='wide')
 BASE=Path(__file__).parent
-# Prefer the stable output filename written by yahoo_enrichment/enrich_yahoo.py.
-# Supports running the app from any current working directory.
 BTC_ROOT = BASE.parent
 UNIVERSE_CANDIDATES = [
     BTC_ROOT / 'yahoo_enrichment' / 'output' / 'stock_metadata.xlsx',
@@ -20,19 +30,26 @@ PORTFOLIO_CANDIDATES = [
     BTC_ROOT / 'data' / 'Starting Portfolio.xlsx',
     BTC_ROOT / 'yahoo_enrichment' / 'Starting Portfolio.xlsx',
 ]
-
 def first_existing(candidates):
     return next((p for p in candidates if p.is_file()), None)
-
 DEFAULT_UNIVERSE = first_existing(UNIVERSE_CANDIDATES)
 DEFAULT_PORTFOLIO = first_existing(PORTFOLIO_CANDIDATES)
 
+# ============================================================
+# SECTION 3: CACHED EXCEL READERS
+# ============================================================
+# Read uploaded Excel content in memory; caching avoids
+# repeating the same file-processing work on widget updates.
 @st.cache_data(show_spinner='Reading rankings workbook...')
-def load_universe(file_bytes):return read_rankings(__import__('io').BytesIO(file_bytes))
-
+def load_universe(file_bytes):return read_rankings(BytesIO(file_bytes))
 @st.cache_data(show_spinner='Reading portfolio workbook...')
-def load_portfolio(file_bytes):return read_starting_portfolio(__import__('io').BytesIO(file_bytes))
+def load_portfolio(file_bytes):return read_starting_portfolio(BytesIO(file_bytes))
 
+# ============================================================
+# SECTION 4: TITLE AND FILE UPLOADS
+# ============================================================
+# Display the interface heading and let users override
+# locally stored workbooks with uploaded Excel files.
 st.title('Bloomberg Trading Challenge | Portfolio & Risk')
 st.caption('Offline analysis based on processed WLS rankings and imported portfolio allocations. No Yahoo Finance requests.')
 with st.sidebar:
@@ -40,9 +57,15 @@ with st.sidebar:
     universe_upload=st.file_uploader('Enriched WLS rankings workbook',type=['xlsx'],key='universe')
     port_upload=st.file_uploader('Starting/current portfolio workbook',type=['xlsx'],key='portfolio')
     st.caption('Default universe: yahoo_enrichment/output/stock_metadata.xlsx. Upload a workbook to override it.')
+    
     st.divider()
     st.caption('Changing an uploaded portfolio replaces the current selection; otherwise slider changes remain in this browser session.')
 
+# ============================================================
+# SECTION 5: LOAD INPUTS AND SET UP SESSION STATE
+# ============================================================
+# Select uploaded files first, then default files. Load their
+# contents and preserve edited weights and capital across reruns.
 if universe_upload:
     universe_bytes = universe_upload.getvalue()
     universe_source = f'Uploaded: {universe_upload.name}'
@@ -53,7 +76,6 @@ else:
     st.error('No stock metadata workbook found. Run yahoo_enrichment/enrich_yahoo.py to generate '
              'yahoo_enrichment/output/stock_metadata.xlsx, or upload a workbook using the sidebar.')
     st.stop()
-
 if port_upload:
     portfolio_bytes = port_upload.getvalue()
     portfolio_source = f'Uploaded: {port_upload.name}'
@@ -68,8 +90,8 @@ try:
     universe=load_universe(universe_bytes)
     starting,import_capital=load_portfolio(portfolio_bytes)
 except Exception as e:
-    st.error(f'Unable to read workbook: {e}');st.stop()
-
+    st.error(f'Unable to read workbook: {e}')
+    st.stop()
 source_key=(hash(universe_bytes),hash(portfolio_bytes))
 if st.session_state.get('source_key')!=source_key:
     st.session_state.source_key=source_key
@@ -78,12 +100,16 @@ if st.session_state.get('source_key')!=source_key:
     st.session_state.capital=float(import_capital)
     st.session_state.widget_version=st.session_state.get('widget_version',0)+1
 
+# ============================================================
+# SECTION 6: CAPITAL AND ALLOCATION CHECKS
+# ============================================================
+# Show universe size and portfolio capital. Warn if weights
+# do not total 100% or if tickers are absent from rankings.
 left,right=st.columns([1,1])
 with left:
     st.metric('Stocks in WLS ranked universe',f'{len(universe):,}')
 with right:
     st.number_input('Portfolio notional (same currency as imported portfolio)',min_value=0.,step=10000.,key='capital')
-
 weights=st.session_state.weights
 sum_w=sum(weights.values())
 if abs(sum_w-1)>1e-6:
@@ -91,11 +117,16 @@ if abs(sum_w-1)>1e-6:
     if st.button('Normalise portfolio weights to 100%'):
         st.session_state.weights=normalize_weights(weights)
         st.rerun()
-
 selected=set(weights)
 unknown=[t for t in selected if t not in set(universe.Ticker)]
-if unknown:st.warning('Missing from WLS rankings (retained using imported metadata): '+', '.join(sorted(unknown)))
+if unknown:
+    st.warning('Missing from WLS rankings (retained using imported metadata): '+', '.join(sorted(unknown)))
 
+# ============================================================
+# SECTION 7: SEARCH FOR STOCKS
+# ============================================================
+# Search the universe by ticker or company name and add
+# an unheld stock with an initial weight of zero.
 st.subheader('Find and add a WLS stock')
 term=st.text_input('Search by Yahoo ticker or company name',placeholder='e.g. MU or Micron').strip()
 if term:
@@ -107,17 +138,36 @@ if choice_labels:
     selected_label=st.selectbox('Matching WLS stocks',list(choice_labels),index=None,placeholder='Select a stock to add')
     if st.button('Add selected stock (initial weight 0%)',disabled=not selected_label):
         ticker=choice_labels[selected_label]
-        if ticker in weights:st.info(f'{ticker} is already in your portfolio. Use its slider below.')
+        if ticker in weights:
+            st.info(f'{ticker} is already in your portfolio. Use its slider below.')
         else:
             st.session_state.weights[ticker]=0.
             st.rerun()
-else:st.info('No matching WLS tickers in the uploaded rankings workbook.')
-
+else:
+    st.info('No matching WLS tickers in the uploaded rankings workbook.')
 st.divider()
+
+# ============================================================
+# SECTION 8: EDIT OR DELETE HOLDINGS
+# ============================================================
+# Resize one position, redistribute other allocations,
+# or remove holdings. A helper formats dropdown labels.
 st.subheader('Position weights')
 st.caption('Each slider sets the selected position weight. Remaining capital is automatically redistributed **proportionally across the other holdings**. Adding a stock at 0% leaves existing allocations unchanged.')
-# Edit positions one at a time to avoid slider/session-value conflict.
-position=st.selectbox('Position to resize',sorted(weights),format_func=lambda t:f"{t} — {universe.set_index('Ticker').at[t,'Name'] if t in set(universe.Ticker) else st.session_state.import_info.get(t,{}).get('Name',t)}")
+universe_names = universe.set_index('Ticker')['Name'].to_dict()
+
+def position_label(ticker):
+    if ticker in universe_names:
+        name = universe_names[ticker]
+    else:
+        name = st.session_state.import_info.get(ticker, {}).get('Name', ticker)
+    return f'{ticker} — {name}'
+
+position = st.selectbox(
+    'Position to resize',
+    sorted(weights),
+    format_func=position_label
+)
 current=float(weights[position])
 new_w=st.slider('Target allocation',min_value=0.0,max_value=100.0,value=float(round(current*100,3)),step=0.25,key=f'weight_{position}_{st.session_state.widget_version}')
 buttons=st.columns([1,1,3])
@@ -136,7 +186,6 @@ with buttons[2]:
         st.session_state.weights=dict(zip(starting['Ticker'],starting['Weight']))
         st.session_state.widget_version+=1
         st.rerun()
-
 st.markdown('#### Delete multiple holdings')
 st.caption('Choose one or more existing positions to remove. Remaining holdings are reweighted proportionally to 100%.')
 to_delete=st.multiselect('Holdings to delete', sorted(st.session_state.weights),
@@ -148,15 +197,20 @@ if st.button('Delete selected holdings', disabled=not to_delete or len(to_delete
 if to_delete and len(to_delete)==len(st.session_state.weights):
     st.warning('You must retain at least one holding. To replace the whole portfolio, import another workbook.')
 
+# ============================================================
+# SECTION 9: PREPARE HOLDINGS TABLE
+# ============================================================
+# Combine weights and company information, calculate
+# position values, and display portfolio concentration.
 hold=pd.DataFrame({'Ticker':list(st.session_state.weights),'Weight':list(st.session_state.weights.values())})
 for col in ['Name','Country','Bloomberg Ticker']:
     hold[col]=hold.Ticker.map({k:v.get(col) for k,v in st.session_state.import_info.items()})
 hold=enrich_holdings(hold,universe)
 hold['Value']=hold['Weight']*st.session_state.capital
 hold=hold.sort_values('Weight',ascending=False).reset_index(drop=True)
-
 m1,m2,m3,m4=st.columns(4)
-m1.metric('Holdings',len(hold));m2.metric('Total allocated',f"{hold.Weight.sum():.2%}")
+m1.metric('Holdings',len(hold))
+m2.metric('Total allocated',f"{hold.Weight.sum():.2%}")
 m3.metric('Largest position',f"{hold.Weight.max():.2%}")
 m4.metric('Effective positions',f"{1/(hold.Weight.pow(2).sum()):.2f}" if hold.Weight.pow(2).sum()>0 else 'N/A')
 show_cols=['Ticker','Name','Weight','Value','Country','Sector','Industry','Score','Rank','Beta_6M']
@@ -166,6 +220,11 @@ st.dataframe(display_hold,use_container_width=True,hide_index=True,column_config
     'Weight':st.column_config.NumberColumn(format='%.2f%%',help='Percent allocation'),
     'Value':st.column_config.NumberColumn(format='%.2f')})
 
+# ============================================================
+# SECTION 10: EXPOSURE CHARTS
+# ============================================================
+# Group holdings by stock, sector, country and industry;
+# show their percentage allocations in charts and tables.
 st.subheader('Allocation breakdown')
 tabs=st.tabs(['Positions','Sectors','Countries','Industries'])
 for tab,field in zip(tabs,['Ticker','Sector','Country','Industry']):
@@ -178,6 +237,11 @@ for tab,field in zip(tabs,['Ticker','Sector','Country','Industry']):
         st.plotly_chart(chart,use_container_width=True)
         st.dataframe(d[[field,'Weight %']].style.format({'Weight %':'{:.2f}%'}),use_container_width=True,hide_index=True)
 
+# ============================================================
+# SECTION 11: WEIGHTED SCREENING METRICS
+# ============================================================
+# Calculate weighted averages of available stock-level
+# metrics and highlight incomplete country information.
 st.subheader('Portfolio characteristics from existing screening metrics')
 metric_fields={'Beta to WLS (approx.)':'Beta_6M','12–1 momentum (weighted average)':'Momentum_12_1','6M stock volatility (weighted average; not portfolio vol.)':'Volatility_6M','Stock drawdown (weighted average; not portfolio drawdown)':'Max_Drawdown','Screening score (weighted average)':'Score'}
 cols=st.columns(3)
@@ -185,8 +249,14 @@ for ix,(label,field) in enumerate(metric_fields.items()):
     result,coverage=weighted_metric(hold,field)
     cols[ix%3].metric(label,f'{result:.3f}' if pd.notna(result) else 'N/A',help=f'Only {coverage:.1%} of portfolio weights have this metric.')
 missing_country=hold.loc[hold.Country.eq('Unknown'),'Weight'].sum()
-if missing_country>0:st.warning(f'{missing_country:.1%} of the portfolio has unknown country metadata. Country exposure may be incomplete; use an import with country labels or update your workbook.')
+if missing_country>0:
+    st.warning(f'{missing_country:.1%} of the portfolio has unknown country metadata. Country exposure may be incomplete; use an import with country labels or update your workbook.')
 
+# ============================================================
+# SECTION 12: STRESS TESTING AND EXPORT
+# ============================================================
+# Estimate a static price-shock impact for selected
+# holdings or groups, then export the current allocation.
 st.subheader('Hypothetical stress tests')
 a,b=st.columns(2)
 with a:
@@ -198,7 +268,6 @@ target=st.selectbox('Affected holding/group',options)
 impact=stress(hold,stress_field,target,shock_pct/100)
 st.metric('Estimated portfolio impact',f'{impact:.2%}',delta=f'{impact*st.session_state.capital:,.0f} notional change',delta_color='normal')
 st.caption('Static, instantaneous shock: unchanged prices assumed for all unaffected stocks; not a historical VaR, return forecast or covariance stress model.')
-
 st.subheader('Export current allocation')
 st.download_button('Download portfolio and exposure workbook',data=export_portfolio(hold,st.session_state.capital),file_name='BTC_Current_Portfolio.xlsx',mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',type='primary')
 st.caption('Exports can be uploaded again as the current portfolio. Existing allocation workbook values remain unchanged unless you download a new file.')
