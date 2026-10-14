@@ -1,0 +1,17 @@
+# Python environments
+.venv/
+venv/
+**/.venv/
+
+# Python generated files
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# macOS and VS Code
+.DS_Store
+.vscode/
+
+# Secrets
+.env
+.streamlit/secrets.toml
