@@ -1,0 +1,1170 @@
+{
+  "run_at": "2026-10-27T15:11:55.907712+00:00",
+  "coverage": {
+    "snapshot_universe": 9105,
+    "attempted": 23,
+    "priced": 18,
+    "screen_limit": 3,
+    "rotation_offset": 3008,
+    "universe_path": "yahoo_enrichment/output/stock_metadata.xlsx",
+    "membership_verified_as_of": null
+  },
+  "signals": {
+    "MU": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 3.888146855679075e-05,
+      "error_band": 0.1107520555927266,
+      "ridge_forecast": -0.0010042679217607958,
+      "forest_forecast": 0.0010820308588743773,
+      "oos_rmse": 0.11527165895426564,
+      "baseline_rmse": 0.11294366248179312,
+      "zero_rmse": 0.1153118017185203,
+      "direction_accuracy": 0.4444444444444444,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.09818866104125967,
+      "annual_vol": 0.8128271322996417,
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "CLMT": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.002345755619414102,
+      "error_band": 0.06476963633540554,
+      "ridge_forecast": 0.005107500519152502,
+      "forest_forecast": -0.0004159892803242976,
+      "oos_rmse": 0.07020473241677984,
+      "baseline_rmse": 0.06801703921076706,
+      "zero_rmse": 0.06956345399134677,
+      "direction_accuracy": 0.5079365079365079,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.18058383775131226,
+      "annual_vol": 0.43540399066429836,
+      "fundamental_context": {
+        "score": -1,
+        "assessment": "Loss-making on reported margin",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "ATEX": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.0061074017195444415,
+      "error_band": 0.08991721531236894,
+      "ridge_forecast": 0.00442871688859482,
+      "forest_forecast": 0.007786086550494062,
+      "oos_rmse": 0.09200906096688731,
+      "baseline_rmse": 0.08711426478584053,
+      "zero_rmse": 0.08673010091063937,
+      "direction_accuracy": 0.5396825396825397,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": -0.14384001006535507,
+      "annual_vol": 0.6442204385640122,
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "STX": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.011863604774819791,
+      "error_band": 0.10502796313668508,
+      "ridge_forecast": 0.007157196940539216,
+      "forest_forecast": 0.016570012609100366,
+      "oos_rmse": 0.10402633168692636,
+      "baseline_rmse": 0.102606224568632,
+      "zero_rmse": 0.1042184246369183,
+      "direction_accuracy": 0.5873015873015873,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": -0.24692929642179406,
+      "annual_vol": 0.7624760035885412,
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "MBX": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "reason": "Insufficient history (minimum 504 labelled sessions)",
+      "fundamental_context": {
+        "score": 0,
+        "assessment": "Insufficient/neutral fundamental context",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "PACS": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": -0.004383498513896182,
+      "error_band": 0.17551121050762725,
+      "ridge_forecast": 0.010521834955682048,
+      "forest_forecast": -0.019288831983474412,
+      "oos_rmse": 0.18137289284139418,
+      "baseline_rmse": 0.18092596612541664,
+      "zero_rmse": 0.17968894120903828,
+      "direction_accuracy": 0.5238095238095238,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.059769617481445714,
+      "annual_vol": 0.9297371772983735,
+      "fundamental_context": {
+        "score": -1,
+        "assessment": "Debt/equity above 200%; sector context required",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "TXG": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.05279509196079353,
+      "error_band": 0.10594297831040698,
+      "ridge_forecast": 0.06480306432255212,
+      "forest_forecast": 0.040787119599034936,
+      "oos_rmse": 0.10244641954930346,
+      "baseline_rmse": 0.10581237079896637,
+      "zero_rmse": 0.10493753192671963,
+      "direction_accuracy": 0.47619047619047616,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.543473627626962,
+      "annual_vol": 0.7419352568649347,
+      "fundamental_context": {
+        "score": -1,
+        "assessment": "Loss-making on reported margin; Reported revenue contraction",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "RVMD": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.010473472716463579,
+      "error_band": 0.11141632727934314,
+      "ridge_forecast": 0.019902873385393496,
+      "forest_forecast": 0.0010440720475336626,
+      "oos_rmse": 0.10983105845315207,
+      "baseline_rmse": 0.10170083042217042,
+      "zero_rmse": 0.10387616843419976,
+      "direction_accuracy": 0.4444444444444444,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": -0.019356929059038852,
+      "annual_vol": 0.6682462031674711,
+      "fundamental_context": {
+        "score": 0,
+        "assessment": "Insufficient/neutral fundamental context",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "SYRE": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.016230549540730443,
+      "error_band": 0.09076099569531271,
+      "ridge_forecast": 0.02205950904711036,
+      "forest_forecast": 0.010401590034350528,
+      "oos_rmse": 0.09142081304478165,
+      "baseline_rmse": 0.09140229372667766,
+      "zero_rmse": 0.09429755172096935,
+      "direction_accuracy": 0.6666666666666666,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": -0.05512049291179366,
+      "annual_vol": 0.6615170585596728,
+      "fundamental_context": {
+        "score": 0,
+        "assessment": "Insufficient/neutral fundamental context",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "ORKA": {
+      "recommendation": "HOLD",
+      "qualified": true,
+      "forecast": 0.0050003460310788376,
+      "error_band": 0.1002953486788623,
+      "ridge_forecast": 0.007014043265685461,
+      "forest_forecast": 0.002986648796472214,
+      "oos_rmse": 0.09900746550739026,
+      "baseline_rmse": 0.10012817279256545,
+      "zero_rmse": 0.10220601173456033,
+      "direction_accuracy": 0.6190476190476191,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": -0.06403481678979017,
+      "annual_vol": 0.6888494879222573,
+      "fundamental_context": {
+        "score": 0,
+        "assessment": "Insufficient/neutral fundamental context",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      },
+      "team_approved": false,
+      "conviction_points": -1,
+      "suggested_weight": 0.009677972886029144,
+      "correlation": null,
+      "volatility_points": -1,
+      "correlation_points": 0,
+      "fundamental_points": 0,
+      "event_risk_points": 0
+    },
+    "603268.SS": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.011768374781372073,
+      "error_band": 0.09208975209566408,
+      "ridge_forecast": -0.01490173110878592,
+      "forest_forecast": 0.038438480671530065,
+      "oos_rmse": 0.08252825052109343,
+      "baseline_rmse": 0.08073572489107203,
+      "zero_rmse": 0.08335232629435682,
+      "direction_accuracy": 0.4444444444444444,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-06-24",
+          "test_start": "2025-07-02",
+          "test_end": "2025-09-26"
+        },
+        {
+          "train_end": "2025-09-19",
+          "test_start": "2025-09-29",
+          "test_end": "2026-01-05"
+        },
+        {
+          "train_end": "2025-12-25",
+          "test_start": "2026-01-06",
+          "test_end": "2026-04-13"
+        },
+        {
+          "train_end": "2026-04-03",
+          "test_start": "2026-04-14",
+          "test_end": "2026-07-15"
+        },
+        {
+          "train_end": "2026-07-08",
+          "test_start": "2026-07-16",
+          "test_end": "2026-10-20"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.11869525168421613,
+      "annual_vol": 0.5558105788278628,
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "AKFIS.IS": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "reason": "Insufficient history (minimum 504 labelled sessions)",
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "ACICO.KW": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "reason": "ValueError: Unverified exchange calendar; configure calendar_overrides"
+    },
+    "8362.T": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "reason": "ValueError: Invalid or missing raw/adjusted prices"
+    },
+    "8393.T": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "reason": "ValueError: Invalid or missing raw/adjusted prices"
+    },
+    "7389.T": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "reason": "ValueError: Invalid or missing raw/adjusted prices"
+    },
+    "8392.T": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "reason": "ValueError: Invalid or missing raw/adjusted prices"
+    },
+    "CUPID.NS": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.022876292331705576,
+      "error_band": 0.08722305620145647,
+      "ridge_forecast": 0.008651974686918792,
+      "forest_forecast": 0.03710060997649236,
+      "oos_rmse": 0.08470123618474842,
+      "baseline_rmse": 0.0841091597726958,
+      "zero_rmse": 0.09183360380739732,
+      "direction_accuracy": 0.6507936507936508,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-03",
+          "test_start": "2025-07-11",
+          "test_end": "2025-10-10"
+        },
+        {
+          "train_end": "2025-10-03",
+          "test_start": "2025-10-13",
+          "test_end": "2026-01-12"
+        },
+        {
+          "train_end": "2026-01-05",
+          "test_start": "2026-01-13",
+          "test_end": "2026-04-17"
+        },
+        {
+          "train_end": "2026-04-09",
+          "test_start": "2026-04-20",
+          "test_end": "2026-07-20"
+        },
+        {
+          "train_end": "2026-07-13",
+          "test_start": "2026-07-21",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.382895093593548,
+      "annual_vol": 0.5897941115660796,
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "0622.HK": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.012840691146743391,
+      "error_band": 0.11208062896064289,
+      "ridge_forecast": 0.016325000875754808,
+      "forest_forecast": 0.009356381417731974,
+      "oos_rmse": 0.09918733805370791,
+      "baseline_rmse": 0.09930185722171081,
+      "zero_rmse": 0.10118835799198625,
+      "direction_accuracy": 0.47619047619047616,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-03",
+          "test_start": "2025-07-11",
+          "test_end": "2025-10-09"
+        },
+        {
+          "train_end": "2025-09-30",
+          "test_start": "2025-10-10",
+          "test_end": "2026-01-12"
+        },
+        {
+          "train_end": "2026-01-05",
+          "test_start": "2026-01-13",
+          "test_end": "2026-04-17"
+        },
+        {
+          "train_end": "2026-04-10",
+          "test_start": "2026-04-20",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-20"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.14154411265207623,
+      "annual_vol": 0.6443716020481371,
+      "fundamental_context": {
+        "score": -1,
+        "assessment": "Reported revenue contraction",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "ASB.WA": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.029881622942293837,
+      "error_band": 0.05792071586265179,
+      "ridge_forecast": 0.04231362775262897,
+      "forest_forecast": 0.017449618131958704,
+      "oos_rmse": 0.06717591409632573,
+      "baseline_rmse": 0.06767429827411009,
+      "zero_rmse": 0.07048284904086562,
+      "direction_accuracy": 0.5079365079365079,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-10",
+          "test_start": "2025-07-18",
+          "test_end": "2025-10-15"
+        },
+        {
+          "train_end": "2025-10-08",
+          "test_start": "2025-10-16",
+          "test_end": "2026-01-21"
+        },
+        {
+          "train_end": "2026-01-14",
+          "test_start": "2026-01-22",
+          "test_end": "2026-04-22"
+        },
+        {
+          "train_end": "2026-04-15",
+          "test_start": "2026-04-23",
+          "test_end": "2026-07-22"
+        },
+        {
+          "train_end": "2026-07-15",
+          "test_start": "2026-07-23",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.4830431284573973,
+      "annual_vol": 0.47300283405852184,
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "SUN.SW": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": 0.005206809921129737,
+      "error_band": 0.037864638307114694,
+      "ridge_forecast": 0.0054134985523176,
+      "forest_forecast": 0.005000121289941875,
+      "oos_rmse": 0.03899823110948914,
+      "baseline_rmse": 0.038460907482086214,
+      "zero_rmse": 0.038446893341019486,
+      "direction_accuracy": 0.49206349206349204,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-10",
+          "test_start": "2025-07-18",
+          "test_end": "2025-10-15"
+        },
+        {
+          "train_end": "2025-10-08",
+          "test_start": "2025-10-16",
+          "test_end": "2026-01-20"
+        },
+        {
+          "train_end": "2026-01-13",
+          "test_start": "2026-01-21",
+          "test_end": "2026-04-21"
+        },
+        {
+          "train_end": "2026-04-14",
+          "test_start": "2026-04-22",
+          "test_end": "2026-07-22"
+        },
+        {
+          "train_end": "2026-07-15",
+          "test_start": "2026-07-23",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": 0.15069400259006094,
+      "annual_vol": 0.29971139641329514,
+      "fundamental_context": {
+        "score": -1,
+        "assessment": "Reported revenue contraction",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "EQUITASBNK.NS": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": -0.0007271542296597554,
+      "error_band": 0.04612592352739593,
+      "ridge_forecast": 0.009014734432192011,
+      "forest_forecast": -0.010469042891511522,
+      "oos_rmse": 0.04795322853324148,
+      "baseline_rmse": 0.04714145452527236,
+      "zero_rmse": 0.04705082905434154,
+      "direction_accuracy": 0.5238095238095238,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-03",
+          "test_start": "2025-07-11",
+          "test_end": "2025-10-10"
+        },
+        {
+          "train_end": "2025-10-03",
+          "test_start": "2025-10-13",
+          "test_end": "2026-01-12"
+        },
+        {
+          "train_end": "2026-01-05",
+          "test_start": "2026-01-13",
+          "test_end": "2026-04-17"
+        },
+        {
+          "train_end": "2026-04-09",
+          "test_start": "2026-04-20",
+          "test_end": "2026-07-20"
+        },
+        {
+          "train_end": "2026-07-13",
+          "test_start": "2026-07-21",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": -0.10939655884672317,
+      "annual_vol": 0.35190577705964815,
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    },
+    "UPS": {
+      "recommendation": "HOLD",
+      "qualified": false,
+      "forecast": -0.01431221090539797,
+      "error_band": 0.04159149469115091,
+      "ridge_forecast": -0.005403886030428021,
+      "forest_forecast": -0.02322053578036792,
+      "oos_rmse": 0.04468639452660303,
+      "baseline_rmse": 0.04318033968922777,
+      "zero_rmse": 0.04296244507914357,
+      "direction_accuracy": 0.4126984126984127,
+      "nonoverlap_samples": 63,
+      "folds": [
+        {
+          "train_end": "2025-07-11",
+          "test_start": "2025-07-21",
+          "test_end": "2025-10-16"
+        },
+        {
+          "train_end": "2025-10-09",
+          "test_start": "2025-10-17",
+          "test_end": "2026-01-16"
+        },
+        {
+          "train_end": "2026-01-09",
+          "test_start": "2026-01-20",
+          "test_end": "2026-04-20"
+        },
+        {
+          "train_end": "2026-04-13",
+          "test_start": "2026-04-21",
+          "test_end": "2026-07-21"
+        },
+        {
+          "train_end": "2026-07-14",
+          "test_start": "2026-07-22",
+          "test_end": "2026-10-19"
+        }
+      ],
+      "reason": "Abstain: validation, disagreement or uncertainty/cost threshold",
+      "momentum_60": -0.022073499945187924,
+      "annual_vol": 0.29961190764332596,
+      "fundamental_context": {
+        "score": 1,
+        "assessment": "Profitable with positive reported revenue growth",
+        "limit": "Current vendor snapshot, not a valuation model; banks and other sectors require manual interpretation"
+      }
+    }
+  },
+  "risk": {
+    "effective_holdings": null,
+    "target_holdings": [
+      12,
+      15
+    ],
+    "current_holdings": 20,
+    "portfolio_minus_30pct_impact": null
+  },
+  "errors": {
+    "ACICO.KW": "ValueError: Unverified exchange calendar; configure calendar_overrides",
+    "8362.T": "ValueError: Invalid or missing raw/adjusted prices",
+    "8393.T": "ValueError: Invalid or missing raw/adjusted prices",
+    "7389.T": "ValueError: Invalid or missing raw/adjusted prices",
+    "8392.T": "ValueError: Invalid or missing raw/adjusted prices"
+  },
+  "decisions": {
+    "status": "BLOCKED",
+    "reasons": [
+      "Cash balance is unknown",
+      "Confirm cash, risk limits, trading costs and competition rules in config",
+      "Incomplete current portfolio valuations; aggregate weights suppressed",
+      "Provide verified WLS country weights summing to 1",
+      "Provide verified WLS industry weights summing to 1",
+      "Provide verified WLS sector weights summing to 1",
+      "Purchase-price units/corporate actions unconfirmed; cost/P&L suppressed",
+      "Stated ACICO total purchase cost is unreconciled with shares \u00d7 price \u00d7 currency",
+      "WLS membership/as-of date not verified; workbook is a historical candidate snapshot"
+    ],
+    "proposals": []
+  },
+  "benchmark": {
+    "status": "UNAVAILABLE",
+    "reason": "Supply an authorised WLS benchmark ticker; no proxy silently substituted"
+  },
+  "fundamentals": {
+    "MU": {
+      "sector": "Technology",
+      "trailingPE": 12.45419,
+      "forwardPE": 4.4743724,
+      "revenueGrowth": 3.793,
+      "profitMargins": 0.63796,
+      "debtToEquity": 3.743,
+      "freeCashflow": 29140250624,
+      "marketCap": 1047381082112,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "CLMT": {
+      "sector": "Basic Materials",
+      "trailingPE": null,
+      "forwardPE": 15.401563,
+      "revenueGrowth": 0.408,
+      "profitMargins": -0.029790001,
+      "debtToEquity": null,
+      "freeCashflow": 172562496,
+      "marketCap": 4332064256,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "ATEX": {
+      "sector": "Communication Services",
+      "trailingPE": 23.284286,
+      "forwardPE": 39.56068,
+      "revenueGrowth": 0.381,
+      "profitMargins": 9.33035,
+      "debtToEquity": 1.43,
+      "freeCashflow": -71296376,
+      "marketCap": 1598099584,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "STX": {
+      "sector": "Technology",
+      "trailingPE": 49.044247,
+      "forwardPE": 11.868577,
+      "revenueGrowth": 0.485,
+      "profitMargins": 0.26108998,
+      "debtToEquity": 179.88,
+      "freeCashflow": 1943750016,
+      "marketCap": 155017232384,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "MBX": {
+      "sector": "Healthcare",
+      "trailingPE": null,
+      "forwardPE": -13.004,
+      "revenueGrowth": null,
+      "profitMargins": 0.0,
+      "debtToEquity": 0.816,
+      "freeCashflow": -53012124,
+      "marketCap": 2489876992,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "PACS": {
+      "sector": "Healthcare",
+      "trailingPE": 27.824562,
+      "forwardPE": 17.38006,
+      "revenueGrowth": 0.091,
+      "profitMargins": 0.04849,
+      "debtToEquity": 305.265,
+      "freeCashflow": 378317376,
+      "marketCap": 7530600448,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "TXG": {
+      "sector": "Healthcare",
+      "trailingPE": null,
+      "forwardPE": 1008.1518,
+      "revenueGrowth": -0.127,
+      "profitMargins": -0.12178001,
+      "debtToEquity": 9.545,
+      "freeCashflow": 179656000,
+      "marketCap": 10070855680,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "RVMD": {
+      "sector": "Healthcare",
+      "trailingPE": null,
+      "forwardPE": -32.25562,
+      "revenueGrowth": null,
+      "profitMargins": 0.0,
+      "debtToEquity": 45.678,
+      "freeCashflow": -711607360,
+      "marketCap": 39849447424,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "SYRE": {
+      "sector": "Healthcare",
+      "trailingPE": null,
+      "forwardPE": -27.51731,
+      "revenueGrowth": null,
+      "profitMargins": 0.0,
+      "debtToEquity": null,
+      "freeCashflow": -89054496,
+      "marketCap": 9014382592,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "ORKA": {
+      "sector": "Healthcare",
+      "trailingPE": null,
+      "forwardPE": -33.12405,
+      "revenueGrowth": null,
+      "profitMargins": 0.0,
+      "debtToEquity": 0.228,
+      "freeCashflow": -65032124,
+      "marketCap": 6277010432,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "603268.SS": {
+      "sector": "Consumer Cyclical",
+      "trailingPE": 41.901478,
+      "forwardPE": 10.197072,
+      "revenueGrowth": 2.942,
+      "profitMargins": 0.14601,
+      "debtToEquity": 178.791,
+      "freeCashflow": -4586793984,
+      "marketCap": 173304119296,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "AKFIS.IS": {
+      "sector": "Real Estate",
+      "trailingPE": 368.75,
+      "forwardPE": null,
+      "revenueGrowth": 0.114,
+      "profitMargins": 0.1378,
+      "debtToEquity": 54.85,
+      "freeCashflow": 5727366656,
+      "marketCap": 56337690624,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "CUPID.NS": {
+      "sector": "Consumer Defensive",
+      "trailingPE": 316.6,
+      "forwardPE": null,
+      "revenueGrowth": 1.587,
+      "profitMargins": 0.30351,
+      "debtToEquity": 12.506,
+      "freeCashflow": null,
+      "marketCap": 425719595008,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "0622.HK": {
+      "sector": "Financial Services",
+      "trailingPE": 51.75,
+      "forwardPE": null,
+      "revenueGrowth": -0.219,
+      "profitMargins": 4.83139,
+      "debtToEquity": 1.983,
+      "freeCashflow": null,
+      "marketCap": 21559515136,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "ASB.WA": {
+      "sector": "Technology",
+      "trailingPE": 20.311718,
+      "forwardPE": 28.281248,
+      "revenueGrowth": 0.787,
+      "profitMargins": 0.02375,
+      "debtToEquity": 92.305,
+      "freeCashflow": 203276752,
+      "marketCap": 9040949248,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "SUN.SW": {
+      "sector": "Industrials",
+      "trailingPE": 19.966217,
+      "forwardPE": 16.434288,
+      "revenueGrowth": -0.041,
+      "profitMargins": 0.087,
+      "debtToEquity": 90.64,
+      "freeCashflow": 67462496,
+      "marketCap": 6002986496,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "EQUITASBNK.NS": {
+      "sector": "Financial Services",
+      "trailingPE": 14.493274,
+      "forwardPE": 7.174657,
+      "revenueGrowth": 0.192,
+      "profitMargins": 0.10925999,
+      "debtToEquity": 94.248,
+      "freeCashflow": null,
+      "marketCap": 73956655104,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    },
+    "UPS": {
+      "sector": "Industrials",
+      "trailingPE": 19.223978,
+      "forwardPE": 12.836536,
+      "revenueGrowth": 0.076,
+      "profitMargins": 0.050819997,
+      "debtToEquity": 189.9,
+      "freeCashflow": 5593999872,
+      "marketCap": 87992082432,
+      "_warnings": [],
+      "_news_status": "no recent accessible headlines"
+    }
+  },
+  "news": {
+    "MU": [],
+    "CLMT": [],
+    "ATEX": [],
+    "STX": [],
+    "MBX": [],
+    "PACS": [],
+    "TXG": [],
+    "RVMD": [],
+    "SYRE": [],
+    "ORKA": [],
+    "603268.SS": [],
+    "AKFIS.IS": [],
+    "CUPID.NS": [],
+    "0622.HK": [],
+    "ASB.WA": [],
+    "SUN.SW": [],
+    "EQUITASBNK.NS": [],
+    "UPS": []
+  },
+  "retrieved_at": {
+    "MU": "2026-10-27T15:05:42.770795+00:00",
+    "CLMT": "2026-10-27T15:05:42.770795+00:00",
+    "ATEX": "2026-10-27T15:05:42.770795+00:00",
+    "STX": "2026-10-27T15:05:42.770795+00:00",
+    "MBX": "2026-10-27T15:05:42.770795+00:00",
+    "PACS": "2026-10-27T15:05:42.770795+00:00",
+    "TXG": "2026-10-27T15:05:42.770795+00:00",
+    "RVMD": "2026-10-27T15:05:42.770795+00:00",
+    "SYRE": "2026-10-27T15:05:42.770795+00:00",
+    "ORKA": "2026-10-27T15:05:42.770795+00:00",
+    "603268.SS": "2026-10-27T15:05:42.770795+00:00",
+    "AKFIS.IS": "2026-10-27T15:05:42.770795+00:00",
+    "CUPID.NS": "2026-10-27T15:05:42.770795+00:00",
+    "0622.HK": "2026-10-27T15:05:42.770795+00:00",
+    "ASB.WA": "2026-10-27T15:05:42.770795+00:00",
+    "SUN.SW": "2026-10-27T15:11:55.907712+00:00",
+    "EQUITASBNK.NS": "2026-10-27T15:09:30.693468+00:00",
+    "UPS": "2026-10-27T15:09:30.693468+00:00"
+  },
+  "http_attempts": 57,
+  "config": {
+    "timezone": "Europe/London",
+    "hour": 7,
+    "base_currency": "USD",
+    "cash": null,
+    "constraints_confirmed": false,
+    "cost_bps_one_way": 25,
+    "max_position": 0.1,
+    "max_turnover": 0.1,
+    "max_vol_increase": 0.0,
+    "risk_aversion": 3.0,
+    "new_buy_weight": 0.05,
+    "min_gain": 0.002,
+    "horizon": 5,
+    "max_screen": 150,
+    "universe_verified_as_of": null,
+    "benchmark_ticker": null,
+    "quote_overrides": {},
+    "purchase_units_confirmed": false,
+    "calendar_overrides": {},
+    "hard_position": 0.125,
+    "max_sector_active": 0.15,
+    "max_industry_active": 0.15,
+    "major_country_active": 0.1,
+    "minor_country_active": 0.05,
+    "target_holdings": [
+      12,
+      15
+    ],
+    "benchmark_exposures": "daily_monitor/data/benchmark_exposures.csv",
+    "team_scores": "daily_monitor/data/team_scores.csv",
+    "cost_basis_overrides": {
+      "ACICO.KW": {
+        "total_usd": 30000,
+        "purchase_date": "2026-10-12",
+        "reconciled": false
+      }
+    },
+    "initial_capital_usd": 1000000,
+    "inception_date": "2026-10-12"
+  }
+}

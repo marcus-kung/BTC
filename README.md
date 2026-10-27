@@ -463,3 +463,7 @@ GitHub: https://github.com/marcus-kung/BTC
 **Language:** Python  
 **Tools:** VS Code, Git, GitHub, Yahoo Finance, Excel
 
+
+## Automated daily portfolio research
+
+See [daily_monitor/README.md](daily_monitor/README.md) for the daily price refresh, validated models, portfolio constraints, reports, and outstanding setup inputs. No trades are executed.

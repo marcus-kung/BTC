@@ -1,0 +1,41 @@
+{
+  "timezone": "Europe/London",
+  "hour": 7,
+  "base_currency": "USD",
+  "cash": null,
+  "constraints_confirmed": false,
+  "cost_bps_one_way": 25,
+  "max_position": 0.1,
+  "max_turnover": 0.1,
+  "max_vol_increase": 0.0,
+  "risk_aversion": 3.0,
+  "new_buy_weight": 0.05,
+  "min_gain": 0.002,
+  "horizon": 5,
+  "max_screen": 150,
+  "universe_verified_as_of": null,
+  "benchmark_ticker": null,
+  "quote_overrides": {},
+  "purchase_units_confirmed": false,
+  "calendar_overrides": {},
+  "hard_position": 0.125,
+  "max_sector_active": 0.15,
+  "max_industry_active": 0.15,
+  "major_country_active": 0.1,
+  "minor_country_active": 0.05,
+  "target_holdings": [
+    12,
+    15
+  ],
+  "benchmark_exposures": "daily_monitor/data/benchmark_exposures.csv",
+  "team_scores": "daily_monitor/data/team_scores.csv",
+  "cost_basis_overrides": {
+    "ACICO.KW": {
+      "total_usd": 30000,
+      "purchase_date": "2026-10-12",
+      "reconciled": false
+    }
+  },
+  "initial_capital_usd": 1000000,
+  "inception_date": "2026-10-12"
+}
