@@ -11,6 +11,9 @@ from trading_dashboard.portfolio import read_rankings
 from .data import Yahoo, positions
 from .signals import analyse
 from .decisions import replacement
+from .costs import one_way_cost_fraction
+from .exposures import read_exposures
+from .wls import load_snapshot, classifications
 
 DEFAULT_UNIVERSE = 'yahoo_enrichment/output/stock_metadata.xlsx'
 
@@ -49,7 +52,16 @@ def safe_text(value):
 def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None):
     output.mkdir(parents=True, exist_ok=True)
     p = positions(input_path)
-    universe = read_rankings(universe_path).sort_values('Rank', na_position='last')
+    rankings = read_rankings(universe_path)
+    membership_records = None
+    snapshot = None
+    if cfg.get('universe_source'):
+        snapshot = load_snapshot(cfg['universe_source'], rankings, domiciles=cfg.get('company_domicile_source', 'daily_monitor/data/company_domiciles.csv'))
+        membership_records = len(snapshot)
+        universe = snapshot.loc[snapshot['Mapping Status'].eq('MAPPED')].copy()
+    else:
+        universe = rankings
+    universe = universe.sort_values('Rank', na_position='last')
     n = max_screen if max_screen is not None else cfg['max_screen']
     # Fixed bounded daily rotation, not an undocumented claim of a full-universe screen.
     pool = universe[~universe.Ticker.isin(p.Symbol)]
@@ -62,12 +74,11 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     base_returns, values, metadata = {}, {}, {}
     rows = []
     for symbol in symbols:
+        metadata[symbol] = classifications(symbol, {}, snapshot)
         try:
             h, info, news, stamp = provider.fetch(symbol)
             histories[symbol], infos[symbol], headlines[symbol], retrieved[symbol] = h, info, news, stamp
-            signals[symbol] = analyse(h['Adj Close'], cfg['horizon'], cfg['cost_bps_one_way'])
-            signals[symbol]['fundamental_context'] = fundamental_context(info)
-            metadata[symbol] = {k: info.get(k) or 'Unknown' for k in ['sector', 'industry', 'country']}
+            metadata[symbol] = classifications(symbol, info, snapshot)
             currency, scale = quote_units(info, cfg['quote_overrides'].get(symbol, {}))
             if currency not in fx_cache:
                 fx_cache[currency] = fx_history(provider, currency, cfg['base_currency'], now)
@@ -83,6 +94,11 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
             last_rate = float(rate.iloc[-1])
             if not np.isfinite(last_rate):
                 raise ValueError('FX unavailable at equity session date')
+            price_usd = float(h.Close.iloc[-1]) * scale * last_rate
+            fee_fraction = one_way_cost_fraction(price_usd, cfg)
+            signals[symbol] = analyse(h['Adj Close'], cfg['horizon'], fee_fraction * 10000)
+            signals[symbol].update(one_way_cost_fraction=fee_fraction, price_usd=price_usd,
+                                   fundamental_context=fundamental_context(info))
             holding = p[p.Symbol == symbol]
             if not holding.empty:
                 row = holding.iloc[0].to_dict()
@@ -91,7 +107,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
                 row.update(latest_close=float(h.Close.iloc[-1]), price_session=str(h.index[-1].date()),
                            quote_currency=currency, quote_scale=scale, fx_to_base=last_rate,
                            base_value=value, recommendation=signals[symbol]['recommendation'],
-                           data_status='CURRENT', retrieved_at=stamp)
+                           data_status='CURRENT', retrieved_at=stamp, **metadata[symbol])
                 rows.append(row)
         except Exception as exc:
             errors[symbol] = f'{type(exc).__name__}: {str(exc)[:220]}'
@@ -99,13 +115,18 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
             signals[symbol] = {'recommendation': 'HOLD', 'qualified': False, 'reason': errors[symbol]}
             if symbol in set(p.Symbol):
                 row = p[p.Symbol == symbol].iloc[0].to_dict()
-                row.update(data_status='UNAVAILABLE', recommendation='HOLD', error=errors[symbol])
+                row.update(data_status='UNAVAILABLE', recommendation='HOLD', error=errors[symbol], **metadata[symbol])
                 rows.append(row)
     blockers = []
     if len(values) != len(p):
         blockers.append('Incomplete current portfolio valuations; aggregate weights suppressed')
     if not cfg['constraints_confirmed']:
-        blockers.append('Confirm cash, risk limits, trading costs and competition rules in config')
+        blockers.append('Confirm risk settings and review competition rules in config')
+    if cfg.get('competition_rules_reviewed'):
+        rules = cfg['competition_rules']
+        local_day = now.tz_convert(cfg['timezone']).date()
+        if not pd.Timestamp(rules['start_date']).date() <= local_day <= pd.Timestamp(rules['end_date']).date():
+            blockers.append('Outside the competition trading dates; new-trade scenarios withheld')
     if cfg['cash'] is None:
         blockers.append('Cash balance is unknown')
     if not cfg['purchase_units_confirmed']:
@@ -120,12 +141,11 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     weights = {s: v / total for s, v in values.items()} if len(values) == len(p) and total > 0 else {}
     if weights:
         weights['__CASH__'] = (cfg['cash'] or 0) / total
-    exposure_path = Path(cfg['benchmark_exposures'])
-    exposures = pd.read_csv(exposure_path) if exposure_path.exists() else pd.DataFrame()
-    for dimension in ['sector', 'industry', 'country']:
-        group = exposures[exposures.dimension == dimension] if 'dimension' in exposures else pd.DataFrame()
-        if group.empty or group.category.duplicated().any() or not np.isfinite(group.weight).all() or (group.weight < 0).any() or not np.isclose(group.weight.sum(), 1):
-            blockers.append(f'Provide verified WLS {dimension} weights summing to 1')
+    exposures, exposure_errors = read_exposures(cfg['benchmark_exposures'])
+    blockers.extend(exposure_errors)
+    if cfg.get('geographic_limit_basis') == 'company_domicile' and snapshot is not None and snapshot['Company Domicile'].eq('Unknown').any():
+        known_weight = float(snapshot.loc[snapshot['Company Domicile'].ne('Unknown'), 'Weight'].sum())
+        blockers.append(f'Company-domicile coverage is {known_weight:.4%} of WLS weight; unverified domiciles remain missing')
     team = pd.read_csv(cfg['team_scores']).set_index('symbol')
     risk = {'effective_holdings': float(1 / sum(v ** 2 for k, v in weights.items() if k != '__CASH__')) if weights else None,
             'target_holdings': cfg['target_holdings'], 'current_holdings': len(p),
@@ -201,11 +221,21 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
                          'benchmark_return': float((1 + joint['__BENCH__']).prod() - 1)}
         except Exception as exc:
             benchmark = {'status': 'UNAVAILABLE', 'reason': str(exc)}
-    payload = {'run_at': now.isoformat(), 'coverage': {'snapshot_universe': len(universe),
+    reported_performance = None
+    if cfg.get('reported_performance_path'):
+        reported_performance = json.loads(Path(cfg['reported_performance_path']).read_text())
+    geographic_column = {'company_domicile': 'Company Domicile', 'listing_market': 'Listing Market Country', 'country_labels': 'Country'}[cfg.get('geographic_limit_basis', 'country_labels')]
+    geographic_label = {'company_domicile': 'company domicile', 'listing_market': 'listing-exchange country', 'country_labels': 'owner country labels'}[cfg.get('geographic_limit_basis', 'country_labels')]
+    payload = {'run_at': now.isoformat(), 'coverage': {'snapshot_universe': len(universe), 'source_membership_records': membership_records,
                'attempted': len(symbols), 'priced': len(histories), 'screen_limit': n,
                'rotation_offset': offset, 'universe_path': str(universe_path),
-               'membership_verified_as_of': cfg['universe_verified_as_of']},
-               'signals': signals, 'risk': risk, 'errors': errors, 'decisions': result, 'benchmark': benchmark,
+               'membership_verified_as_of': cfg['universe_verified_as_of'],
+               'geographic_limit_basis': cfg.get('geographic_limit_basis', 'country_labels'),
+               'geographic_classified_weight': float(snapshot.loc[snapshot[geographic_column].ne('Unknown'), 'Weight'].sum()) if snapshot is not None else None,
+               'company_domicile_classified_weight': float(snapshot.loc[snapshot['Company Domicile'].ne('Unknown'), 'Weight'].sum()) if snapshot is not None else None,
+               'listing_market_classified_weight': float(snapshot.loc[snapshot['Listing Market Country'].ne('Unknown'), 'Weight'].sum()) if snapshot is not None else None,
+               'listing_market_unknown_records': int(snapshot['Listing Market Country'].eq('Unknown').sum()) if snapshot is not None else None},
+               'reported_performance': reported_performance, 'signals': signals, 'classifications': metadata, 'risk': risk, 'errors': errors, 'decisions': result, 'benchmark': benchmark,
                'fundamentals': {s: {k: i.get(k) for k in ['sector', 'trailingPE', 'forwardPE', 'revenueGrowth',
                    'profitMargins', 'debtToEquity', 'freeCashflow', 'marketCap', '_warnings', '_news_status']}
                    for s, i in infos.items()}, 'news': headlines, 'retrieved_at': retrieved,
@@ -214,8 +244,15 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     pd.DataFrame([{'symbol': s, **{k: v for k, v in sig.items() if k != 'folds'}} for s, sig in signals.items()]).to_csv(output / 'screen.csv', index=False)
     (output / 'audit.json').write_text(json.dumps(clean_json(payload), indent=2, default=str, allow_nan=False))
     lines = [f'# Morning portfolio report — {now.date()}', '', f'Generated {now.isoformat()}. Completed exchange sessions only.',
-             f'Coverage: {len(histories)}/{len(symbols)} priced; {n} rotating candidates from {len(universe)} historical WLS workbook records.',
-             f'Portfolio decision: **{result["status"]}**.', '']
+             f"Coverage: {len(histories)}/{len(symbols)} priced; {n} rotating candidates from {len(universe)} mapped WLS listings ({membership_records or len(universe)} source records). Snapshot as of {cfg['universe_verified_as_of'] or 'unverified'}.",
+             f'Portfolio decision: **{result["status"]}**.',
+             f"Geographic-limit basis: {geographic_label}; benchmark coverage {payload['coverage']['geographic_classified_weight']:.2%}." if snapshot is not None else 'Geographic exposure unavailable.',
+             'Initial portfolio trades: USD 0 commission (owner confirmed).' if cfg.get('initial_trade_commission_confirmed') else 'Initial-trade commission is unconfirmed.',
+             f"Cash: USD {cfg['cash']:,.2f}. Commission: USD {cfg['commission_usd_per_share']:.3f} per share per trade leg." if cfg['cash'] is not None else 'Cash is unknown.', '']
+    if reported_performance:
+        rp = reported_performance
+        lines += [f"Owner-reported snapshot ({safe_text(rp['as_of_date'])}, exact time unspecified): P&L {safe_text(rp['currency'])} {rp['portfolio_pnl']:,.0f}; relative P&L versus WLS {safe_text(rp['currency'])} {rp['relative_pnl_vs_wls']:,.0f}; portfolio return {rp['portfolio_return']:.2%}.",
+                  'This dated manual snapshot is not automatically refreshed or reconciled to current positions.', '']
     lines += [f'- {safe_text(x)}' for x in result['reasons']]
     lines += ['', '| Holding | Signal | Session | Status |', '|---|---|---|---|']
     for row in rows:

@@ -79,9 +79,9 @@ def benchmark():
 
 
 def test_active_exposures_are_relative_and_unknown_blocks():
-    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States'}}
+    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'United States', 'listing_market_country': 'United States'}}
     assert active_limits(['A'], [1.], meta, benchmark(), CFG) is not None
-    meta['A']['country'] = 'Unknown'
+    meta['A']['listing_market_country'] = 'Unknown'
     assert active_limits(['A'], [1.], meta, benchmark(), CFG) is None
 
 
@@ -97,8 +97,8 @@ def test_replacement_cost_risk_and_active_limits():
                'B': pd.Series(rng.normal(0, .001, 252), index=idx)}
     sig = {s: {'qualified': True, 'recommendation': 'BUY' if s == 'B' else 'SELL',
                'forecast': .20 if s == 'B' else -.05, 'error_band': .001,
-               'suggested_weight': .05} for s in ['A', 'B']}
-    meta = {s: {'sector': 'Tech', 'industry': 'Software', 'country': 'United States'} for s in sig}
+               'suggested_weight': .05, 'one_way_cost_fraction': .005 / (100 if s == 'A' else 10)} for s in ['A', 'B']}
+    meta = {s: {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'United States', 'listing_market_country': 'United States'} for s in sig}
     cfg = dict(CFG, max_position=1., min_gain=.001)
     result = replacement({'A': 1., '__CASH__': 0.}, sig, returns, meta, cfg, [], benchmark())
     assert result['status'] == 'REVIEW'
@@ -106,7 +106,11 @@ def test_replacement_cost_risk_and_active_limits():
     assert p['fund_from'] == 'A' and p['weight'] <= .05
     assert p['vol_after'] < p['vol_before']
     assert sum(p['weights_after'].values()) + p['cash_weight_after'] == pytest.approx(1.)
-    assert replacement({'A': 1.}, sig, returns, meta, dict(cfg, cost_bps_one_way=5000), [], benchmark())['status'] == 'NO CHANGE'
+    assert p['transaction_cost_fraction'] == pytest.approx(.05 * .005 / 100 + p['buy_value_fraction_of_original_nav'] * .005 / 10)
+    assert p['cash_weight_after'] == 0
+    assert p['buy_value_fraction_of_original_nav'] + p['transaction_cost_fraction'] == pytest.approx(.05)
+    expensive = {s: dict(v, one_way_cost_fraction=.5) for s, v in sig.items()}
+    assert replacement({'A': 1.}, expensive, returns, meta, cfg, [], benchmark())['status'] == 'NO CHANGE'
 
 
 def test_end_to_end_partial_failure_writes_report_without_fake_valuation(tmp_path):
@@ -124,7 +128,17 @@ def test_end_to_end_partial_failure_writes_report_without_fake_valuation(tmp_pat
     assert output.weight.isna().all()
     assert result['decisions']['status'] == 'BLOCKED'
     assert len(result['errors']) == 19
+    assert 'Cash balance is unknown' not in result['decisions']['reasons']
+    assert result['signals']['MU']['one_way_cost_fraction'] == pytest.approx(.005 / history.Close.iloc[-1])
     assert (tmp_path / 'out/report.md').exists()
+    manual = json.loads(Path(CFG['reported_performance_path']).read_text())
+    assert result['reported_performance'] == manual
+    assert not manual['automatically_refreshed'] and not manual['reconciled_to_positions']
+    report = (tmp_path / 'out/report.md').read_text()
+    assert f"{manual['portfolio_pnl']:,.0f}" in report
+    assert f"{manual['relative_pnl_vs_wls']:,.0f}" in report
+    assert f"{manual['portfolio_return']:.2%}" in report
+    assert manual['as_of_date'] in report
     json.loads((tmp_path / 'out/audit.json').read_text())
 
 
@@ -135,3 +149,197 @@ def test_custom_exchange_calendar_requires_unexpired_source(tmp_path):
     assert expected_session('ACICO.KW', pd.Timestamp('2026-10-26T09:00Z'), override) == pd.Timestamp('2026-10-25')
     with pytest.raises(ValueError, match='expired'):
         expected_session('ACICO.KW', pd.Timestamp('2026-10-28T09:00Z'), override)
+
+
+def test_per_share_commission_uses_usd_price():
+    from daily_monitor.costs import one_way_cost_fraction
+    assert one_way_cost_fraction(100, CFG) == pytest.approx(.00005)
+    assert one_way_cost_fraction(1, CFG) == pytest.approx(.005)
+    for price in [0, -1, float('nan')]:
+        with pytest.raises(ValueError):
+            one_way_cost_fraction(price, CFG)
+
+
+def test_wls_weight_inputs_require_each_group_to_sum_to_one(tmp_path):
+    from daily_monitor.exposures import read_exposures
+    path = tmp_path / 'weights.csv'
+    content = ('dimension,category,weight,major_country\n'
+               'country,United States,0.6,true\ncountry,Japan,0.4,true\n'
+               'industry,Software,1,\nsector,Technology,1,\n')
+    path.write_text(content)
+    frame, errors = read_exposures(path)
+    assert not errors
+    assert frame.groupby('dimension').weight.sum().eq(1).all()
+    for changed in [content.replace('Japan,0.4', 'Japan,0.3'),
+                    content.replace('Japan,0.4', 'Japan,'),
+                    content.replace('Japan,0.4', 'Japan,40'),
+                    content.replace('Japan,0.4', 'United States,0.4'),
+                    content.replace('Japan,0.4,true', 'Japan,0.4,maybe')]:
+        path.write_text(changed)
+        assert read_exposures(path)[1]
+    assert read_exposures('daily_monitor/data/benchmark_exposures.csv')[1]
+
+
+def test_confirmed_risk_and_initial_commission_are_separate_from_future_fees():
+    p = positions('daily_monitor/data/positions.csv')
+    assert CFG['constraints_confirmed'] and CFG['risk_limits_confirmed']
+    assert CFG['competition_rules_reviewed']
+    assert CFG['initial_trade_commission_usd'] == 0
+    assert CFG['commission_usd_per_share'] == .005
+    assert p.Commission.eq(0).all() and p['Commission Currency'].eq('USD').all()
+    assert CFG['max_position'] == .10 and CFG['hard_position'] == .125
+    assert not CFG['purchase_units_confirmed']
+    assert CFG['universe_verified_as_of'] == '2026-10-12'
+
+
+def test_outside_competition_dates_withholds_new_trade_scenarios(tmp_path):
+    def unavailable(self, symbol):
+        raise ValueError('provider unavailable')
+    with patch('daily_monitor.run.Yahoo.fetch', unavailable):
+        result = execute(CFG, Path('daily_monitor/data/positions.csv'), Path('yahoo_enrichment/output/stock_metadata.xlsx'),
+                         tmp_path / 'out', tmp_path / 'cache', pd.Timestamp('2026-11-14T07:15Z'), max_screen=0)
+    assert any('Outside the competition trading dates' in x for x in result['decisions']['reasons'])
+    assert not any('Confirm risk settings' in x for x in result['decisions']['reasons'])
+
+
+def test_dated_wls_membership_preserves_full_denominator_and_mapping_gaps(tmp_path):
+    from daily_monitor.wls import load_snapshot, map_symbol
+    from trading_dashboard.portfolio import read_rankings
+    ranking = read_rankings('yahoo_enrichment/output/stock_metadata.xlsx')
+    snapshot = load_snapshot(CFG['universe_source'], ranking)
+    assert len(snapshot) == 10420
+    assert snapshot.Weight.sum() == pytest.approx(.99999991)
+    assert snapshot['Mapping Status'].eq('MAPPED').sum() == 10175
+    # Unknown source weight stays in the denominator; no renormalisation of the matched subset.
+    assert snapshot.loc[snapshot.Sector.eq('Unknown'), 'Weight'].sum() > .03
+    assert snapshot.loc[snapshot.Country.eq('Unknown'), 'Weight'].sum() > .98
+    rules = json.loads(Path('daily_monitor/data/ticker_rules.json').read_text())
+    assert map_symbol('0622', 'XHKG', rules) == '0622.HK'
+    assert map_symbol('MM', 'XNYS', rules) == 'MM'
+    assert map_symbol('MM', 'XNSE', rules) == 'M&M.NS'
+
+
+def test_owner_country_labels_are_used_for_holdings_and_benchmark():
+    from daily_monitor.wls import classifications, load_snapshot
+    from trading_dashboard.portfolio import read_rankings
+    frame = load_snapshot(CFG['universe_source'], read_rankings('yahoo_enrichment/output/stock_metadata.xlsx'))
+    source = frame.set_index('Ticker')
+    assert source.loc['ASB.WA', 'Country'] == 'Poland'
+    assert source.loc['ASB.WA', 'Country Source'] == 'Owner override'
+    labels = classifications('ASB.WA', {'country': 'Cyprus', 'sector': 'Technology'}, frame)
+    assert labels['country'] == 'Poland' and labels['country_source'] == 'Owner override'
+    assert labels['sector'] == 'Technology' and labels['sector_source'] == 'Yahoo current metadata'
+    # Classification survives a missing price response without manufacturing a price or weight.
+    labels = classifications('MU', {}, frame)
+    assert labels['country'] == 'United States'
+    assert labels['sector'] == 'Technology' and labels['sector_source'] == 'Enriched metadata'
+    outside = classifications('NOT_IN_SNAPSHOT', {}, frame)
+    assert outside['country'] == 'Unknown'
+
+
+def test_starting_portfolio_labels_do_not_hide_remaining_benchmark_country_gaps():
+    from daily_monitor.wls import load_snapshot
+    from trading_dashboard.portfolio import read_rankings
+    frame = load_snapshot(CFG['universe_source'], read_rankings('yahoo_enrichment/output/stock_metadata.xlsx'))
+    current = positions('daily_monitor/data/positions.csv')
+    held = frame.loc[frame.Ticker.isin(current.Symbol)]
+    assert len(held) == 20
+    assert held.Country.ne('Unknown').all()
+    assert frame.loc[frame.Country.ne('Unknown'), 'Weight'].sum() == pytest.approx(.01373326)
+    assert frame.Weight.sum() == pytest.approx(.99999991)
+    # Keep the repository's more complete entries when the supplied older file lacks them.
+    assert frame.loc[frame.Ticker.eq('TMO'), 'Sector'].iloc[0] == 'Healthcare'
+
+
+def test_listing_market_data_cannot_silently_replace_country():
+    from daily_monitor.wls import classifications
+    frame = pd.DataFrame([{'Ticker': 'TEST', 'Mapping Status': 'MAPPED',
+                           'Country': 'Ireland', 'Country Source': 'Enriched metadata',
+                           'Sector': 'Technology', 'Sector Source': 'Enriched metadata',
+                           'Industry': 'Software', 'Industry Source': 'Enriched metadata',
+                           'Listing Market Country': 'United States',
+                           'Listing Market Country Source': 'Supplied listing-market workbook'}])
+    result = classifications('TEST', {'country': 'Ireland'}, frame)
+    assert result['country'] == 'Ireland'
+    assert result['listing_market_country'] == 'United States'
+    assert result['country_source'] == 'Yahoo current metadata'
+
+
+def test_listing_country_import_rejects_missing_and_ambiguous_input(tmp_path):
+    from daily_monitor.wls import read_listing_countries
+    path = tmp_path / 'listing.csv'
+    for text in ['Ticker,Listing Market Country\nA,United States\n a ,Canada\n',
+                 'Ticker,Listing Market Country\nA,\n',
+                 'Ticker,Country\nA,United States\n']:
+        path.write_text(text)
+        with pytest.raises(ValueError):
+            read_listing_countries(path)
+    path.write_text('Ticker,Listing Market Country\n A ,United States\n')
+    assert read_listing_countries(path).Ticker.tolist() == ['A']
+
+
+def test_listing_market_coverage_keeps_full_wls_denominator_and_original_country():
+    from daily_monitor.wls import load_snapshot
+    from trading_dashboard.portfolio import read_rankings
+    frame = load_snapshot(CFG['universe_source'], read_rankings('yahoo_enrichment/output/stock_metadata.xlsx'))
+    known = frame['Listing Market Country'].ne('Unknown')
+    assert known.sum() == 8892
+    assert frame.loc[known, 'Weight'].sum() == pytest.approx(.96580757)
+    assert frame.loc[~known, 'Weight'].sum() == pytest.approx(.03419234)
+    assert frame.loc[frame.Country.ne('Unknown'), 'Weight'].sum() == pytest.approx(.01373326)
+    assert frame.loc[frame.Ticker.eq('ASB.WA'), 'Country'].iloc[0] == 'Poland'
+
+
+def test_domicile_import_requires_verification_not_just_country_or_url(tmp_path):
+    from daily_monitor.wls import read_company_domiciles
+    path = tmp_path / 'domiciles.csv'
+    header = 'Ticker,Company Domicile,Verification Source,Verification Status\n'
+    for row in ['A,Ireland,https://example.com,Unverified\n',
+                'A,,https://example.com,Verified: incorporation\n',
+                'A,Ireland,http://example.com,Verified: incorporation\n',
+                'A,Ireland,https://example.com,Verified: incorporation\nA,Ireland,https://example.com,Verified: incorporation\n']:
+        path.write_text(header + row)
+        with pytest.raises(ValueError):
+            read_company_domiciles(path)
+    path.write_text(header + 'A,Ireland,https://example.com,Verified: incorporation\n')
+    assert read_company_domiciles(path)['Company Domicile'].tolist() == ['Ireland']
+
+
+def test_domicile_risk_basis_preserves_owner_labels_without_using_them_as_evidence():
+    from daily_monitor.wls import classifications, load_snapshot
+    from trading_dashboard.portfolio import read_rankings
+    frame = load_snapshot(CFG['universe_source'], read_rankings('yahoo_enrichment/output/stock_metadata.xlsx'))
+    asb = classifications('ASB.WA', {'country': 'Cyprus'}, frame)
+    assert asb['country'] == 'Poland'
+    assert asb['company_domicile'] == 'Cyprus'
+    hk = classifications('0622.HK', {'country': 'Hong Kong'}, frame)
+    assert hk['country'] == 'Hong Kong' and hk['company_domicile'] == 'Bermuda'
+    # A profile-country response is not incorporation evidence.
+    mu = classifications('MU', {'country': 'United States'}, frame)
+    assert mu['country'] == 'United States' and mu['company_domicile'] == 'Unknown'
+    assert frame['Company Domicile'].ne('Unknown').sum() == 7
+    assert frame.loc[frame['Company Domicile'].ne('Unknown'), 'Weight'].sum() == pytest.approx(.00010377)
+    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'Unknown'}}
+    assert active_limits(['A'], [1.], meta, benchmark(), dict(CFG, geographic_limit_basis='company_domicile')) is None
+
+
+def test_active_country_exposures_use_listing_market_and_keep_other_views_separate():
+    frame = pd.read_csv('daily_monitor/data/benchmark_exposures.csv')
+    country = frame.loc[frame.dimension.eq('country')].set_index('category')
+    assert country.loc['Unknown', 'weight'] == pytest.approx(.03419234)
+    assert 'Poland' in country.index and 'Hong Kong' in country.index
+    assert 'Cyprus' not in country.index and 'Bermuda' not in country.index
+    assert country.weight.sum() == pytest.approx(.99999991)
+    original = pd.read_csv('daily_monitor/data/benchmark_country_labels_exposures.csv').set_index('category')
+    assert 'Poland' in original.index
+    assert original.loc['Unknown', 'weight'] == pytest.approx(.98626665)
+
+
+def test_listing_market_limits_ignore_missing_or_conflicting_domicile():
+    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'Ireland',
+                  'company_domicile': 'Unknown', 'listing_market_country': 'United States'}}
+    assert CFG['geographic_limit_basis'] == 'listing_market'
+    assert active_limits(['A'], [1.], meta, benchmark(), CFG) is not None
+    meta['A']['listing_market_country'] = 'Unknown'
+    meta['A']['company_domicile'] = 'United States'
+    assert active_limits(['A'], [1.], meta, benchmark(), CFG) is None

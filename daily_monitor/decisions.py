@@ -11,7 +11,8 @@ def active_limits(names, after, metadata, benchmark, cfg):
         for s, w in zip(names, after):
             if w <= 1e-10:
                 continue
-            category = metadata.get(s, {}).get(dimension, 'Unknown')
+            field = {'company_domicile': 'company_domicile', 'listing_market': 'listing_market_country', 'country_labels': 'country'}[cfg.get('geographic_limit_basis', 'country_labels')] if dimension == 'country' else dimension
+            category = metadata.get(s, {}).get(field, 'Unknown')
             if not category or category == 'Unknown':
                 return None
             grouped[category] = grouped.get(category, 0) + w
@@ -56,10 +57,20 @@ def replacement(weights, signals, returns, metadata, cfg, blockers, benchmark=No
                 continue
             cov = LedoitWolf().fit(joint.to_numpy()).covariance_ * cfg['horizon']
             before = np.array([weights.get(s, 0) for s in names])
-            after = before.copy()
-            after[-1] += allocation
+            buy_fee = signals[candidate].get('one_way_cost_fraction')
+            sell_fee = signals[funding].get('one_way_cost_fraction') if funding != '__CASH__' else 0.
+            if buy_fee is None or sell_fee is None or not np.isfinite([buy_fee, sell_fee]).all() or buy_fee < 0 or not 0 <= sell_fee < 1:
+                continue
+            # Sale/cash budget pays all fees; no unfunded commission with zero cash.
+            buy_allocation = allocation * (1 - sell_fee) / (1 + buy_fee)
+            cost = allocation * sell_fee + buy_allocation * buy_fee
+            nominal_after = before.copy()
+            nominal_after[-1] += buy_allocation
             if funding != '__CASH__':
-                after[names.index(funding)] -= allocation
+                nominal_after[names.index(funding)] -= allocation
+            cash_after = cash_weight - (allocation if funding == '__CASH__' else 0)
+            # Values above are fractions of original NAV; exposures use post-cost NAV.
+            after = nominal_after / (1 - cost)
             if after.max() > cfg['max_position'] + 1e-9:
                 continue
             exposure = active_limits(names, after, metadata, benchmark, cfg)
@@ -67,21 +78,21 @@ def replacement(weights, signals, returns, metadata, cfg, blockers, benchmark=No
                 continue
             mu = np.array([signals[s]['forecast'] for s in names])
             v0, v1 = float(before @ cov @ before), float(after @ cov @ after)
-            cost = allocation * cfg['cost_bps_one_way'] / 10000 * (1 if funding == '__CASH__' else 2)
-            gain = float((after - before) @ mu) - cost - cfg['risk_aversion'] * (v1 - v0) / 2
+            gain = float((nominal_after - before) @ mu) - cost - cfg['risk_aversion'] * (v1 - v0) / 2
             # Penalise candidate forecast error as well as model-estimated risk.
-            margin = allocation * (signals[candidate]['error_band'] + (signals[funding]['error_band'] if funding != '__CASH__' else 0))
+            margin = buy_allocation * signals[candidate]['error_band'] + allocation * (signals[funding]['error_band'] if funding != '__CASH__' else 0)
             if np.sqrt(v1) > np.sqrt(v0) + cfg['max_vol_increase'] or gain - margin < cfg['min_gain']:
                 continue
-            proposals.append({'buy': candidate, 'fund_from': funding, 'weight': allocation,
+            proposals.append({'buy': candidate, 'fund_from': funding, 'weight': float(after[-1]), 'funding_weight_before_fees': allocation,
+                              'buy_value_fraction_of_original_nav': buy_allocation,
                               'net_utility_gain': gain, 'uncertainty_penalty': margin,
                               'transaction_cost_fraction': cost, 'common_sessions': len(joint),
                               'vol_before': np.sqrt(v0), 'vol_after': np.sqrt(v1),
                               'active_exposures_after': exposure,
                               'effective_holdings_after': float(1 / np.sum(after ** 2)),
-                              'candidate_minus_30pct_impact': float(-.30 * allocation),
+                              'candidate_minus_30pct_impact': float(-.30 * after[-1]),
                               'weights_after': dict(zip(names, after)),
-                              'cash_weight_after': cash_weight - (allocation if funding == '__CASH__' else 0)})
+                              'cash_weight_after': cash_after / (1 - cost)})
     proposals.sort(key=lambda p: p['net_utility_gain'] - p['uncertainty_penalty'], reverse=True)
     return {'status': 'REVIEW' if proposals else 'NO CHANGE', 'reasons': ['Scenarios are alternatives; do not combine'],
             'proposals': proposals[:3]}
