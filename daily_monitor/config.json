@@ -2,7 +2,7 @@
   "timezone": "Europe/London",
   "hour": 7,
   "base_currency": "USD",
-  "cash": 0,
+  "cash": 1343,
   "constraints_confirmed": true,
   "max_position": 0.1,
   "max_turnover": 0.1,

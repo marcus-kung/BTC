@@ -145,7 +145,6 @@ def test_custom_exchange_calendar_requires_unexpired_source(tmp_path):
 
 def test_per_share_commission_uses_usd_price():
     from daily_monitor.costs import one_way_cost_fraction
-    assert CFG['cash'] == 0
     assert one_way_cost_fraction(100, CFG) == pytest.approx(.00005)
     assert one_way_cost_fraction(1, CFG) == pytest.approx(.005)
     for price in [0, -1, float('nan')]:
