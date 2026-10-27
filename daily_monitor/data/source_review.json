@@ -39,5 +39,6 @@
     "exported_trade_date": "2026-10-09",
     "guidebook_start_date": "2026-10-12",
     "resolution": "Preserve supplied dates; request TMSG trade-history reconciliation before historical P&L is enabled"
-  }
+  },
+  "additional_classification_sources": "classification_source_review.json"
 }

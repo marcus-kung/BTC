@@ -1,16 +1,16 @@
 dimension,category,weight,major_country
 country,China,4.113e-05,False
-country,Cyprus,1.4170000000000002e-05,False
 country,Hong Kong,1.412e-05,False
 country,India,3.599e-05,False
 country,Indonesia,5.36e-06,False
 country,Israel,1.9070000000000002e-05,False
 country,Japan,5.0940000000000004e-05,False
 country,Kuwait,3.1799999999999996e-06,False
+country,Poland,1.4170000000000002e-05,False
 country,Taiwan,0.00175598,False
 country,Turkey,1.18e-06,False
-country,United States,0.00049963,False
-country,Unknown,0.99755916,False
+country,United States,0.011792140000000001,False
+country,Unknown,0.98626665,False
 sector,Basic Materials,0.03922449,
 sector,Communication Services,0.07138773,
 sector,Consumer Cyclical,0.08364624,

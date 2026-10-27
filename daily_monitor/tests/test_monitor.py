@@ -205,8 +205,40 @@ def test_dated_wls_membership_preserves_full_denominator_and_mapping_gaps(tmp_pa
     assert snapshot['Mapping Status'].eq('MAPPED').sum() == 10175
     # Unknown source weight stays in the denominator; no renormalisation of the matched subset.
     assert snapshot.loc[snapshot.Sector.eq('Unknown'), 'Weight'].sum() > .03
-    assert snapshot.loc[snapshot.Country.eq('Unknown'), 'Weight'].sum() > .99
+    assert snapshot.loc[snapshot.Country.eq('Unknown'), 'Weight'].sum() > .98
     rules = json.loads(Path('daily_monitor/data/ticker_rules.json').read_text())
     assert map_symbol('0622', 'XHKG', rules) == '0622.HK'
     assert map_symbol('MM', 'XNYS', rules) == 'MM'
     assert map_symbol('MM', 'XNSE', rules) == 'M&M.NS'
+
+
+def test_owner_country_labels_are_used_for_holdings_and_benchmark():
+    from daily_monitor.wls import classifications, load_snapshot
+    from trading_dashboard.portfolio import read_rankings
+    frame = load_snapshot(CFG['universe_source'], read_rankings('yahoo_enrichment/output/stock_metadata.xlsx'))
+    source = frame.set_index('Ticker')
+    assert source.loc['ASB.WA', 'Country'] == 'Poland'
+    assert source.loc['ASB.WA', 'Country Source'] == 'Owner override'
+    labels = classifications('ASB.WA', {'country': 'Cyprus', 'sector': 'Technology'}, frame)
+    assert labels['country'] == 'Poland' and labels['country_source'] == 'Owner override'
+    assert labels['sector'] == 'Technology' and labels['sector_source'] == 'Yahoo current metadata'
+    # Classification survives a missing price response without manufacturing a price or weight.
+    labels = classifications('MU', {}, frame)
+    assert labels['country'] == 'United States'
+    assert labels['sector'] == 'Technology' and labels['sector_source'] == 'Enriched metadata'
+    outside = classifications('NOT_IN_SNAPSHOT', {}, frame)
+    assert outside['country'] == 'Unknown'
+
+
+def test_starting_portfolio_labels_do_not_hide_remaining_benchmark_country_gaps():
+    from daily_monitor.wls import load_snapshot
+    from trading_dashboard.portfolio import read_rankings
+    frame = load_snapshot(CFG['universe_source'], read_rankings('yahoo_enrichment/output/stock_metadata.xlsx'))
+    current = positions('daily_monitor/data/positions.csv')
+    held = frame.loc[frame.Ticker.isin(current.Symbol)]
+    assert len(held) == 20
+    assert held.Country.ne('Unknown').all()
+    assert frame.loc[frame.Country.ne('Unknown'), 'Weight'].sum() == pytest.approx(.01373326)
+    assert frame.Weight.sum() == pytest.approx(.99999991)
+    # Keep the repository's more complete entries when the supplied older file lacks them.
+    assert frame.loc[frame.Ticker.eq('TMO'), 'Sector'].iloc[0] == 'Healthcare'

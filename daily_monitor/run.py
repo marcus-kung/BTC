@@ -13,7 +13,7 @@ from .signals import analyse
 from .decisions import replacement
 from .costs import one_way_cost_fraction
 from .exposures import read_exposures
-from .wls import load_snapshot
+from .wls import load_snapshot, classifications
 
 DEFAULT_UNIVERSE = 'yahoo_enrichment/output/stock_metadata.xlsx'
 
@@ -54,6 +54,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     p = positions(input_path)
     rankings = read_rankings(universe_path)
     membership_records = None
+    snapshot = None
     if cfg.get('universe_source'):
         snapshot = load_snapshot(cfg['universe_source'], rankings)
         membership_records = len(snapshot)
@@ -73,10 +74,11 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     base_returns, values, metadata = {}, {}, {}
     rows = []
     for symbol in symbols:
+        metadata[symbol] = classifications(symbol, {}, snapshot)
         try:
             h, info, news, stamp = provider.fetch(symbol)
             histories[symbol], infos[symbol], headlines[symbol], retrieved[symbol] = h, info, news, stamp
-            metadata[symbol] = {k: info.get(k) or 'Unknown' for k in ['sector', 'industry', 'country']}
+            metadata[symbol] = classifications(symbol, info, snapshot)
             currency, scale = quote_units(info, cfg['quote_overrides'].get(symbol, {}))
             if currency not in fx_cache:
                 fx_cache[currency] = fx_history(provider, currency, cfg['base_currency'], now)
@@ -105,7 +107,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
                 row.update(latest_close=float(h.Close.iloc[-1]), price_session=str(h.index[-1].date()),
                            quote_currency=currency, quote_scale=scale, fx_to_base=last_rate,
                            base_value=value, recommendation=signals[symbol]['recommendation'],
-                           data_status='CURRENT', retrieved_at=stamp)
+                           data_status='CURRENT', retrieved_at=stamp, **metadata[symbol])
                 rows.append(row)
         except Exception as exc:
             errors[symbol] = f'{type(exc).__name__}: {str(exc)[:220]}'
@@ -113,7 +115,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
             signals[symbol] = {'recommendation': 'HOLD', 'qualified': False, 'reason': errors[symbol]}
             if symbol in set(p.Symbol):
                 row = p[p.Symbol == symbol].iloc[0].to_dict()
-                row.update(data_status='UNAVAILABLE', recommendation='HOLD', error=errors[symbol])
+                row.update(data_status='UNAVAILABLE', recommendation='HOLD', error=errors[symbol], **metadata[symbol])
                 rows.append(row)
     blockers = []
     if len(values) != len(p):
@@ -220,7 +222,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
                'attempted': len(symbols), 'priced': len(histories), 'screen_limit': n,
                'rotation_offset': offset, 'universe_path': str(universe_path),
                'membership_verified_as_of': cfg['universe_verified_as_of']},
-               'signals': signals, 'risk': risk, 'errors': errors, 'decisions': result, 'benchmark': benchmark,
+               'signals': signals, 'classifications': metadata, 'risk': risk, 'errors': errors, 'decisions': result, 'benchmark': benchmark,
                'fundamentals': {s: {k: i.get(k) for k in ['sector', 'trailingPE', 'forwardPE', 'revenueGrowth',
                    'profitMargins', 'debtToEquity', 'freeCashflow', 'marketCap', '_warnings', '_news_status']}
                    for s, i in infos.items()}, 'news': headlines, 'retrieved_at': retrieved,

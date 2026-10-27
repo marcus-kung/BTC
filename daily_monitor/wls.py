@@ -61,16 +61,37 @@ def load_snapshot(source, rankings, overrides='daily_monitor/data/wls_classifica
     lookup = rankings.drop_duplicates('Ticker').set_index('Ticker')
     for column in ['Country', 'Sector', 'Industry', 'Rank']:
         frame[column] = usable.map(lookup[column])
+        if column != 'Rank':
+            frame[column + ' Source'] = np.where(frame[column].notna() & frame[column].ne('Unknown'), 'Enriched metadata', 'Missing')
     for _, row in override.iterrows():
         for column in ['Country', 'Sector', 'Industry']:
             if row[column].strip():
                 frame.loc[row['Bloomberg Ticker'], column] = row[column].strip()
+                frame.loc[row['Bloomberg Ticker'], column + ' Source'] = 'Owner override'
     for column in ['Country', 'Sector', 'Industry']:
         frame[column] = frame[column].fillna('Unknown').replace('', 'Unknown')
     return frame.reset_index()
 
 
-def build(source, metadata, output):
+def classifications(symbol, info, snapshot=None):
+    """Use approved labels consistently for holdings and benchmark comparisons."""
+    result = {}
+    match = snapshot.loc[snapshot.Ticker.eq(symbol) & snapshot['Mapping Status'].eq('MAPPED')] if snapshot is not None else pd.DataFrame()
+    record = match.iloc[0] if len(match) == 1 else None
+    for column in ['Country', 'Sector', 'Industry']:
+        key = column.lower()
+        value = info.get(key)
+        source = 'Yahoo current metadata' if value else 'Missing'
+        if record is not None:
+            approved = record.get(column + ' Source') == 'Owner override'
+            if approved or (not value and record[column] != 'Unknown'):
+                value, source = record[column], record[column + ' Source']
+        result[key] = value or 'Unknown'
+        result[key + '_source'] = source
+    return result
+
+
+def build(source, metadata, output, as_of=None):
     frame = load_snapshot(source, read_rankings(metadata))
     output.mkdir(parents=True, exist_ok=True)
     exposure_rows, coverage = [], {}
@@ -93,7 +114,13 @@ def build(source, metadata, output):
     pd.DataFrame(exposure_rows).to_csv(path, index=False)
     incomplete = frame[['Country', 'Sector', 'Industry']].eq('Unknown').any(axis=1) | frame['Mapping Status'].ne('MAPPED')
     frame.loc[incomplete, ['Bloomberg Ticker', 'Ticker', 'Name', 'Weight', 'Country', 'Sector', 'Industry', 'Mapping Status']].to_csv(output / 'wls_missing_classifications.csv', index=False)
-    summary = {'source': str(source), 'classification_source': str(metadata), 'snapshot_records': len(frame),
+    cfg_path = Path('daily_monitor/config.json')
+    cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
+    if as_of is None and str(source) == cfg.get('universe_source'):
+        as_of = cfg.get('universe_verified_as_of')
+    if as_of is not None:
+        as_of = str(pd.Timestamp(as_of).date())
+    summary = {'effective_date': as_of, 'date_source': cfg.get('universe_date_confirmation_source') if as_of == cfg.get('universe_verified_as_of') else 'Explicit build argument', 'source': str(source), 'classification_source': str(metadata), 'snapshot_records': len(frame),
                'mapped_records': int(frame['Mapping Status'].eq('MAPPED').sum()),
                'ambiguous_records': int(frame['Mapping Status'].eq('AMBIGUOUS').sum()),
                'source_weight_sum': float(frame.Weight.sum()), 'dimensions': coverage,
@@ -107,8 +134,9 @@ def main():
     p.add_argument('--source', default=DEFAULT_SOURCE)
     p.add_argument('--metadata', default='yahoo_enrichment/output/stock_metadata.xlsx')
     p.add_argument('--output', type=Path, default=Path('daily_monitor/data'))
+    p.add_argument('--as-of', help='Explicit snapshot date when building a different source')
     args = p.parse_args()
-    print(json.dumps(build(args.source, args.metadata, args.output), indent=2))
+    print(json.dumps(build(args.source, args.metadata, args.output, args.as_of), indent=2))
 
 
 if __name__ == '__main__':
