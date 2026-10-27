@@ -3,9 +3,12 @@
   "date_source": "Owner confirmation on 2026-10-27",
   "source": "WLS Stock Screening \u2013 Code & Data/WLS Data.xlsx",
   "classification_source": "yahoo_enrichment/output/stock_metadata.xlsx",
+  "listing_country_source": "daily_monitor/data/listing_market_countries.csv",
   "snapshot_records": 10420,
   "mapped_records": 10175,
   "ambiguous_records": 4,
+  "listing_country_input_rows": 9105,
+  "listing_country_input_tickers_without_snapshot_match": 213,
   "source_weight_sum": 0.99999991,
   "dimensions": {
     "country": {
@@ -22,6 +25,11 @@
       "classified_weight": 0.9644474400000002,
       "unknown_weight": 0.035552469999999996,
       "unknown_records": 1621
+    },
+    "listing_market": {
+      "classified_weight": 0.9658075700000001,
+      "unknown_weight": 0.03419234,
+      "unknown_records": 1528
     }
   },
   "method": "No reweighting of classified subset; Unknown retains actual uncovered index weight. Exchange jurisdiction is not company country."

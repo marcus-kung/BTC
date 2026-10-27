@@ -1,0 +1,17 @@
+{
+  "file_name": "WLS_Candidate_Shortlist_with_countries.xlsx",
+  "sha256": "9996e1dffe7770f18c557c2b689818a785ac8c80189a7fd02a2f1e36d518d09a",
+  "imported_on": "2026-10-27",
+  "sheet": "Full Rankings",
+  "source_country_column": "Country (Listing Market)",
+  "records": 9105,
+  "unique_tickers": 9105,
+  "missing_country_rows": 0,
+  "meaning": "Country/territory of the listing exchange, not verified issuer domicile, headquarters, operations or supply-chain exposure",
+  "source_url": "https://help.yahoo.com/kb/SLN2310.html",
+  "source_methodology": "Yahoo ticker suffix; unsuffixed symbols assumed US-listed, as stated in the supplied workbook",
+  "matching": "Exact Yahoo symbol against unambiguously mapped WLS snapshot records; no fuzzy name matching",
+  "precedence": "Existing owner-selected starting-portfolio labels remain authoritative for the original Country field",
+  "issuer_country_policy": "Listing-market labels do not fill or verify issuer-country gaps",
+  "owner_confirmation": "Owner will supply a separate company-domicile file; listing-market data remain separate from country-limit labels"
+}

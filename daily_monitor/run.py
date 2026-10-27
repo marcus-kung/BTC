@@ -221,7 +221,9 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     payload = {'run_at': now.isoformat(), 'coverage': {'snapshot_universe': len(universe), 'source_membership_records': membership_records,
                'attempted': len(symbols), 'priced': len(histories), 'screen_limit': n,
                'rotation_offset': offset, 'universe_path': str(universe_path),
-               'membership_verified_as_of': cfg['universe_verified_as_of']},
+               'membership_verified_as_of': cfg['universe_verified_as_of'],
+               'listing_market_classified_weight': float(snapshot.loc[snapshot['Listing Market Country'].ne('Unknown'), 'Weight'].sum()) if snapshot is not None else None,
+               'listing_market_unknown_records': int(snapshot['Listing Market Country'].eq('Unknown').sum()) if snapshot is not None else None},
                'signals': signals, 'classifications': metadata, 'risk': risk, 'errors': errors, 'decisions': result, 'benchmark': benchmark,
                'fundamentals': {s: {k: i.get(k) for k in ['sector', 'trailingPE', 'forwardPE', 'revenueGrowth',
                    'profitMargins', 'debtToEquity', 'freeCashflow', 'marketCap', '_warnings', '_news_status']}
@@ -233,6 +235,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     lines = [f'# Morning portfolio report — {now.date()}', '', f'Generated {now.isoformat()}. Completed exchange sessions only.',
              f"Coverage: {len(histories)}/{len(symbols)} priced; {n} rotating candidates from {len(universe)} mapped WLS listings ({membership_records or len(universe)} source records). Snapshot as of {cfg['universe_verified_as_of'] or 'unverified'}.",
              f'Portfolio decision: **{result["status"]}**.',
+             f"Listing-market benchmark coverage: {payload['coverage']['listing_market_classified_weight']:.2%}; this is exchange geography and is reported separately from the country-limit labels." if snapshot is not None else 'Listing-market exposure unavailable.',
              'Initial portfolio trades: USD 0 commission (owner confirmed).' if cfg.get('initial_trade_commission_confirmed') else 'Initial-trade commission is unconfirmed.',
              f"Cash: USD {cfg['cash']:,.2f}. Commission: USD {cfg['commission_usd_per_share']:.3f} per share per trade leg." if cfg['cash'] is not None else 'Cash is unknown.', '']
     lines += [f'- {safe_text(x)}' for x in result['reasons']]

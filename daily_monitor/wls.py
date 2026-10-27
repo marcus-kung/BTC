@@ -31,7 +31,22 @@ def map_symbol(ticker, mic, rules):
     return ticker + suffix
 
 
-def load_snapshot(source, rankings, overrides='daily_monitor/data/wls_classifications.csv'):
+def read_listing_countries(path):
+    frame = pd.read_csv(path, dtype=str, keep_default_na=False)
+    required = ['Ticker', 'Listing Market Country']
+    if not set(required).issubset(frame.columns):
+        raise ValueError('Listing-country input requires Ticker and Listing Market Country columns')
+    frame = frame[required].copy()
+    frame['Ticker'] = frame.Ticker.str.strip().str.upper()
+    frame['Listing Market Country'] = frame['Listing Market Country'].str.strip()
+    if frame.Ticker.eq('').any() or frame.Ticker.duplicated().any():
+        raise ValueError('Listing-country input requires unique nonempty tickers')
+    if frame['Listing Market Country'].str.lower().isin(['', 'unknown', 'none', 'nan']).any():
+        raise ValueError('Listing-country input has missing labels')
+    return frame
+
+
+def load_snapshot(source, rankings, overrides='daily_monitor/data/wls_classifications.csv', listing_countries='daily_monitor/data/listing_market_countries.csv'):
     raw = pd.read_excel(source, sheet_name='Worksheet Raw', dtype={'Ticker': str})
     raw = raw.rename(columns={'Ticker': 'Bloomberg Ticker', 'Weight': 'Source Weight Percent'})
     if raw['Bloomberg Ticker'].duplicated().any():
@@ -70,6 +85,10 @@ def load_snapshot(source, rankings, overrides='daily_monitor/data/wls_classifica
                 frame.loc[row['Bloomberg Ticker'], column + ' Source'] = 'Owner override'
     for column in ['Country', 'Sector', 'Industry']:
         frame[column] = frame[column].fillna('Unknown').replace('', 'Unknown')
+    # Listing market is a distinct supplied field, never an issuer-country substitute.
+    listing = read_listing_countries(listing_countries).set_index('Ticker')
+    frame['Listing Market Country'] = usable.map(listing['Listing Market Country']).fillna('Unknown')
+    frame['Listing Market Country Source'] = np.where(frame['Listing Market Country'].ne('Unknown'), 'Supplied listing-market workbook', 'Missing')
     return frame.reset_index()
 
 
@@ -88,6 +107,8 @@ def classifications(symbol, info, snapshot=None):
                 value, source = record[column], record[column + ' Source']
         result[key] = value or 'Unknown'
         result[key + '_source'] = source
+    result['listing_market_country'] = record['Listing Market Country'] if record is not None else 'Unknown'
+    result['listing_market_country_source'] = record['Listing Market Country Source'] if record is not None else 'Missing'
     return result
 
 
@@ -112,17 +133,32 @@ def build(source, metadata, output, as_of=None):
             if row['dimension'] == 'country' and row['category'] in flags:
                 row['major_country'] = flags[row['category']]
     pd.DataFrame(exposure_rows).to_csv(path, index=False)
+    listing_exposures = frame.groupby('Listing Market Country', dropna=False).Weight.sum().rename_axis('category').reset_index(name='weight')
+    listing_exposures.insert(0, 'dimension', 'listing_market')
+    listing_exposures.to_csv(output / 'benchmark_listing_market_exposures.csv', index=False)
+    coverage['listing_market'] = {
+        'classified_weight': float(frame.loc[frame['Listing Market Country'].ne('Unknown'), 'Weight'].sum()),
+        'unknown_weight': float(frame.loc[frame['Listing Market Country'].eq('Unknown'), 'Weight'].sum()),
+        'unknown_records': int(frame['Listing Market Country'].eq('Unknown').sum())}
+    missing_listing = frame['Listing Market Country'].eq('Unknown')
+    frame.loc[missing_listing, ['Bloomberg Ticker', 'Ticker', 'Name', 'Weight', 'Mapping Status']].to_csv(output / 'wls_missing_listing_countries.csv', index=False)
     incomplete = frame[['Country', 'Sector', 'Industry']].eq('Unknown').any(axis=1) | frame['Mapping Status'].ne('MAPPED')
-    frame.loc[incomplete, ['Bloomberg Ticker', 'Ticker', 'Name', 'Weight', 'Country', 'Sector', 'Industry', 'Mapping Status']].to_csv(output / 'wls_missing_classifications.csv', index=False)
+    frame.loc[incomplete, ['Bloomberg Ticker', 'Ticker', 'Name', 'Weight', 'Country', 'Listing Market Country', 'Sector', 'Industry', 'Mapping Status']].to_csv(output / 'wls_missing_classifications.csv', index=False)
+    listing_input = read_listing_countries('daily_monitor/data/listing_market_countries.csv')
+    eligible_symbols = set(frame.loc[frame['Mapping Status'].eq('MAPPED'), 'Ticker'])
+    unmatched_input = listing_input.loc[~listing_input.Ticker.isin(eligible_symbols)]
+    unmatched_input.to_csv(output / 'listing_country_unmatched_input.csv', index=False)
     cfg_path = Path('daily_monitor/config.json')
     cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
     if as_of is None and str(source) == cfg.get('universe_source'):
         as_of = cfg.get('universe_verified_as_of')
     if as_of is not None:
         as_of = str(pd.Timestamp(as_of).date())
-    summary = {'effective_date': as_of, 'date_source': cfg.get('universe_date_confirmation_source') if as_of == cfg.get('universe_verified_as_of') else 'Explicit build argument', 'source': str(source), 'classification_source': str(metadata), 'snapshot_records': len(frame),
+    summary = {'effective_date': as_of, 'date_source': cfg.get('universe_date_confirmation_source') if as_of == cfg.get('universe_verified_as_of') else 'Explicit build argument', 'source': str(source), 'classification_source': str(metadata), 'listing_country_source': 'daily_monitor/data/listing_market_countries.csv', 'snapshot_records': len(frame),
                'mapped_records': int(frame['Mapping Status'].eq('MAPPED').sum()),
                'ambiguous_records': int(frame['Mapping Status'].eq('AMBIGUOUS').sum()),
+               'listing_country_input_rows': len(listing_input),
+               'listing_country_input_tickers_without_snapshot_match': len(unmatched_input),
                'source_weight_sum': float(frame.Weight.sum()), 'dimensions': coverage,
                'method': 'No reweighting of classified subset; Unknown retains actual uncovered index weight. Exchange jurisdiction is not company country.'}
     (output / 'wls_classification_coverage.json').write_text(json.dumps(summary, indent=2)+'\n')

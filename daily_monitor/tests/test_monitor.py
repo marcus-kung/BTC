@@ -242,3 +242,42 @@ def test_starting_portfolio_labels_do_not_hide_remaining_benchmark_country_gaps(
     assert frame.Weight.sum() == pytest.approx(.99999991)
     # Keep the repository's more complete entries when the supplied older file lacks them.
     assert frame.loc[frame.Ticker.eq('TMO'), 'Sector'].iloc[0] == 'Healthcare'
+
+
+def test_listing_market_data_cannot_silently_replace_country():
+    from daily_monitor.wls import classifications
+    frame = pd.DataFrame([{'Ticker': 'TEST', 'Mapping Status': 'MAPPED',
+                           'Country': 'Ireland', 'Country Source': 'Enriched metadata',
+                           'Sector': 'Technology', 'Sector Source': 'Enriched metadata',
+                           'Industry': 'Software', 'Industry Source': 'Enriched metadata',
+                           'Listing Market Country': 'United States',
+                           'Listing Market Country Source': 'Supplied listing-market workbook'}])
+    result = classifications('TEST', {'country': 'Ireland'}, frame)
+    assert result['country'] == 'Ireland'
+    assert result['listing_market_country'] == 'United States'
+    assert result['country_source'] == 'Yahoo current metadata'
+
+
+def test_listing_country_import_rejects_missing_and_ambiguous_input(tmp_path):
+    from daily_monitor.wls import read_listing_countries
+    path = tmp_path / 'listing.csv'
+    for text in ['Ticker,Listing Market Country\nA,United States\n a ,Canada\n',
+                 'Ticker,Listing Market Country\nA,\n',
+                 'Ticker,Country\nA,United States\n']:
+        path.write_text(text)
+        with pytest.raises(ValueError):
+            read_listing_countries(path)
+    path.write_text('Ticker,Listing Market Country\n A ,United States\n')
+    assert read_listing_countries(path).Ticker.tolist() == ['A']
+
+
+def test_listing_market_coverage_keeps_full_wls_denominator_and_original_country():
+    from daily_monitor.wls import load_snapshot
+    from trading_dashboard.portfolio import read_rankings
+    frame = load_snapshot(CFG['universe_source'], read_rankings('yahoo_enrichment/output/stock_metadata.xlsx'))
+    known = frame['Listing Market Country'].ne('Unknown')
+    assert known.sum() == 8892
+    assert frame.loc[known, 'Weight'].sum() == pytest.approx(.96580757)
+    assert frame.loc[~known, 'Weight'].sum() == pytest.approx(.03419234)
+    assert frame.loc[frame.Country.ne('Unknown'), 'Weight'].sum() == pytest.approx(.01373326)
+    assert frame.loc[frame.Ticker.eq('ASB.WA'), 'Country'].iloc[0] == 'Poland'
