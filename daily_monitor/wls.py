@@ -46,7 +46,25 @@ def read_listing_countries(path):
     return frame
 
 
-def load_snapshot(source, rankings, overrides='daily_monitor/data/wls_classifications.csv', listing_countries='daily_monitor/data/listing_market_countries.csv'):
+def read_company_domiciles(path):
+    frame = pd.read_csv(path, dtype=str, keep_default_na=False)
+    columns = ['Ticker', 'Company Domicile', 'Verification Source', 'Verification Status']
+    if not set(columns).issubset(frame.columns):
+        raise ValueError('Company-domicile input requires ticker, domicile, verification source and status')
+    frame = frame[columns].copy()
+    for column in columns:
+        frame[column] = frame[column].str.strip()
+    frame['Ticker'] = frame.Ticker.str.upper()
+    if frame.Ticker.eq('').any() or frame.Ticker.duplicated().any():
+        raise ValueError('Company-domicile input requires unique nonempty tickers')
+    if frame['Company Domicile'].str.lower().isin(['', 'unknown', 'none', 'nan']).any():
+        raise ValueError('Unverified/blank domiciles must not be supplied as classified records')
+    if not frame['Verification Status'].str.casefold().str.startswith('verified:').all() or not frame['Verification Source'].str.startswith('https://').all():
+        raise ValueError('Domicile records require explicit verified status and HTTPS evidence')
+    return frame
+
+
+def load_snapshot(source, rankings, overrides='daily_monitor/data/wls_classifications.csv', listing_countries='daily_monitor/data/listing_market_countries.csv', domiciles='daily_monitor/data/company_domiciles.csv'):
     raw = pd.read_excel(source, sheet_name='Worksheet Raw', dtype={'Ticker': str})
     raw = raw.rename(columns={'Ticker': 'Bloomberg Ticker', 'Weight': 'Source Weight Percent'})
     if raw['Bloomberg Ticker'].duplicated().any():
@@ -89,6 +107,10 @@ def load_snapshot(source, rankings, overrides='daily_monitor/data/wls_classifica
     listing = read_listing_countries(listing_countries).set_index('Ticker')
     frame['Listing Market Country'] = usable.map(listing['Listing Market Country']).fillna('Unknown')
     frame['Listing Market Country Source'] = np.where(frame['Listing Market Country'].ne('Unknown'), 'Supplied listing-market workbook', 'Missing')
+    domicile = read_company_domiciles(domiciles).set_index('Ticker')
+    frame['Company Domicile'] = usable.map(domicile['Company Domicile']).fillna('Unknown')
+    frame['Domicile Verification Source'] = usable.map(domicile['Verification Source']).fillna('')
+    frame['Domicile Verification Status'] = usable.map(domicile['Verification Status']).fillna('Unverified')
     return frame.reset_index()
 
 
@@ -109,18 +131,30 @@ def classifications(symbol, info, snapshot=None):
         result[key + '_source'] = source
     result['listing_market_country'] = record['Listing Market Country'] if record is not None else 'Unknown'
     result['listing_market_country_source'] = record['Listing Market Country Source'] if record is not None else 'Missing'
+    # Yahoo profile country/headquarters and owner labels are not incorporation evidence.
+    result['company_domicile'] = record['Company Domicile'] if record is not None and 'Company Domicile' in record else 'Unknown'
+    result['domicile_verification_source'] = record['Domicile Verification Source'] if record is not None and 'Domicile Verification Source' in record else ''
+    result['domicile_verification_status'] = record['Domicile Verification Status'] if record is not None and 'Domicile Verification Status' in record else 'Unverified'
     return result
 
 
 def build(source, metadata, output, as_of=None):
-    frame = load_snapshot(source, read_rankings(metadata))
+    cfg_path = Path('daily_monitor/config.json')
+    cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
+    domicile_path = cfg.get('company_domicile_source', 'daily_monitor/data/company_domiciles.csv')
+    frame = load_snapshot(source, read_rankings(metadata), domiciles=domicile_path)
+    country_basis = cfg.get('geographic_limit_basis', 'country_labels')
+    if country_basis not in ('country_labels', 'company_domicile'):
+        raise ValueError('Geographic limit basis must be country_labels or company_domicile')
+    country_column = 'Company Domicile' if country_basis == 'company_domicile' else 'Country'
     output.mkdir(parents=True, exist_ok=True)
     exposure_rows, coverage = [], {}
     for column in ['Country', 'Sector', 'Industry']:
-        grouped = frame.groupby(column, dropna=False).Weight.sum()
-        coverage[column.lower()] = {'classified_weight': float(frame.loc[frame[column].ne('Unknown'), 'Weight'].sum()),
-                                    'unknown_weight': float(frame.loc[frame[column].eq('Unknown'), 'Weight'].sum()),
-                                    'unknown_records': int(frame[column].eq('Unknown').sum())}
+        effective_column = country_column if column == 'Country' else column
+        grouped = frame.groupby(effective_column, dropna=False).Weight.sum()
+        coverage[column.lower()] = {'classified_weight': float(frame.loc[frame[effective_column].ne('Unknown'), 'Weight'].sum()),
+                                    'unknown_weight': float(frame.loc[frame[effective_column].eq('Unknown'), 'Weight'].sum()),
+                                    'unknown_records': int(frame[effective_column].eq('Unknown').sum())}
         for category, weight in grouped.items():
             exposure_rows.append({'dimension': column.lower(), 'category': category, 'weight': weight,
                                   'major_country': False if column == 'Country' else ''})
@@ -133,6 +167,21 @@ def build(source, metadata, output, as_of=None):
             if row['dimension'] == 'country' and row['category'] in flags:
                 row['major_country'] = flags[row['category']]
     pd.DataFrame(exposure_rows).to_csv(path, index=False)
+    for column, dimension, filename in [('Country', 'country_labels', 'benchmark_country_labels_exposures.csv'),
+                                        ('Company Domicile', 'company_domicile', 'benchmark_company_domicile_exposures.csv')]:
+        separate = frame.groupby(column, dropna=False).Weight.sum().rename_axis('category').reset_index(name='weight')
+        separate.insert(0, 'dimension', dimension)
+        separate.to_csv(output / filename, index=False)
+    missing_domicile = frame['Company Domicile'].eq('Unknown')
+    frame.loc[missing_domicile, ['Bloomberg Ticker', 'Ticker', 'Name', 'Weight', 'Mapping Status']].to_csv(output / 'wls_missing_company_domiciles.csv', index=False)
+    coverage['company_domicile'] = {
+        'classified_weight': float(frame.loc[~missing_domicile, 'Weight'].sum()),
+        'unknown_weight': float(frame.loc[missing_domicile, 'Weight'].sum()),
+        'unknown_records': int(missing_domicile.sum())}
+    coverage['country_labels'] = {
+        'classified_weight': float(frame.loc[frame.Country.ne('Unknown'), 'Weight'].sum()),
+        'unknown_weight': float(frame.loc[frame.Country.eq('Unknown'), 'Weight'].sum()),
+        'unknown_records': int(frame.Country.eq('Unknown').sum())}
     listing_exposures = frame.groupby('Listing Market Country', dropna=False).Weight.sum().rename_axis('category').reset_index(name='weight')
     listing_exposures.insert(0, 'dimension', 'listing_market')
     listing_exposures.to_csv(output / 'benchmark_listing_market_exposures.csv', index=False)
@@ -142,14 +191,12 @@ def build(source, metadata, output, as_of=None):
         'unknown_records': int(frame['Listing Market Country'].eq('Unknown').sum())}
     missing_listing = frame['Listing Market Country'].eq('Unknown')
     frame.loc[missing_listing, ['Bloomberg Ticker', 'Ticker', 'Name', 'Weight', 'Mapping Status']].to_csv(output / 'wls_missing_listing_countries.csv', index=False)
-    incomplete = frame[['Country', 'Sector', 'Industry']].eq('Unknown').any(axis=1) | frame['Mapping Status'].ne('MAPPED')
-    frame.loc[incomplete, ['Bloomberg Ticker', 'Ticker', 'Name', 'Weight', 'Country', 'Listing Market Country', 'Sector', 'Industry', 'Mapping Status']].to_csv(output / 'wls_missing_classifications.csv', index=False)
+    incomplete = frame[[country_column, 'Sector', 'Industry']].eq('Unknown').any(axis=1) | frame['Mapping Status'].ne('MAPPED')
+    frame.loc[incomplete, ['Bloomberg Ticker', 'Ticker', 'Name', 'Weight', 'Country', 'Company Domicile', 'Listing Market Country', 'Sector', 'Industry', 'Mapping Status']].to_csv(output / 'wls_missing_classifications.csv', index=False)
     listing_input = read_listing_countries('daily_monitor/data/listing_market_countries.csv')
     eligible_symbols = set(frame.loc[frame['Mapping Status'].eq('MAPPED'), 'Ticker'])
     unmatched_input = listing_input.loc[~listing_input.Ticker.isin(eligible_symbols)]
     unmatched_input.to_csv(output / 'listing_country_unmatched_input.csv', index=False)
-    cfg_path = Path('daily_monitor/config.json')
-    cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
     if as_of is None and str(source) == cfg.get('universe_source'):
         as_of = cfg.get('universe_verified_as_of')
     if as_of is not None:
@@ -159,6 +206,7 @@ def build(source, metadata, output, as_of=None):
                'ambiguous_records': int(frame['Mapping Status'].eq('AMBIGUOUS').sum()),
                'listing_country_input_rows': len(listing_input),
                'listing_country_input_tickers_without_snapshot_match': len(unmatched_input),
+               'geographic_limit_basis': country_basis, 'domicile_input_records': len(read_company_domiciles(domicile_path)),
                'source_weight_sum': float(frame.Weight.sum()), 'dimensions': coverage,
                'method': 'No reweighting of classified subset; Unknown retains actual uncovered index weight. Exchange jurisdiction is not company country.'}
     (output / 'wls_classification_coverage.json').write_text(json.dumps(summary, indent=2)+'\n')

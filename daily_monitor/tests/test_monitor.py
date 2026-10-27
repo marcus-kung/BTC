@@ -79,9 +79,9 @@ def benchmark():
 
 
 def test_active_exposures_are_relative_and_unknown_blocks():
-    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States'}}
+    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'United States'}}
     assert active_limits(['A'], [1.], meta, benchmark(), CFG) is not None
-    meta['A']['country'] = 'Unknown'
+    meta['A']['company_domicile'] = 'Unknown'
     assert active_limits(['A'], [1.], meta, benchmark(), CFG) is None
 
 
@@ -98,7 +98,7 @@ def test_replacement_cost_risk_and_active_limits():
     sig = {s: {'qualified': True, 'recommendation': 'BUY' if s == 'B' else 'SELL',
                'forecast': .20 if s == 'B' else -.05, 'error_band': .001,
                'suggested_weight': .05, 'one_way_cost_fraction': .005 / (100 if s == 'A' else 10)} for s in ['A', 'B']}
-    meta = {s: {'sector': 'Tech', 'industry': 'Software', 'country': 'United States'} for s in sig}
+    meta = {s: {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'United States'} for s in sig}
     cfg = dict(CFG, max_position=1., min_gain=.001)
     result = replacement({'A': 1., '__CASH__': 0.}, sig, returns, meta, cfg, [], benchmark())
     assert result['status'] == 'REVIEW'
@@ -281,3 +281,47 @@ def test_listing_market_coverage_keeps_full_wls_denominator_and_original_country
     assert frame.loc[~known, 'Weight'].sum() == pytest.approx(.03419234)
     assert frame.loc[frame.Country.ne('Unknown'), 'Weight'].sum() == pytest.approx(.01373326)
     assert frame.loc[frame.Ticker.eq('ASB.WA'), 'Country'].iloc[0] == 'Poland'
+
+
+def test_domicile_import_requires_verification_not_just_country_or_url(tmp_path):
+    from daily_monitor.wls import read_company_domiciles
+    path = tmp_path / 'domiciles.csv'
+    header = 'Ticker,Company Domicile,Verification Source,Verification Status\n'
+    for row in ['A,Ireland,https://example.com,Unverified\n',
+                'A,,https://example.com,Verified: incorporation\n',
+                'A,Ireland,http://example.com,Verified: incorporation\n',
+                'A,Ireland,https://example.com,Verified: incorporation\nA,Ireland,https://example.com,Verified: incorporation\n']:
+        path.write_text(header + row)
+        with pytest.raises(ValueError):
+            read_company_domiciles(path)
+    path.write_text(header + 'A,Ireland,https://example.com,Verified: incorporation\n')
+    assert read_company_domiciles(path)['Company Domicile'].tolist() == ['Ireland']
+
+
+def test_domicile_risk_basis_preserves_owner_labels_without_using_them_as_evidence():
+    from daily_monitor.wls import classifications, load_snapshot
+    from trading_dashboard.portfolio import read_rankings
+    frame = load_snapshot(CFG['universe_source'], read_rankings('yahoo_enrichment/output/stock_metadata.xlsx'))
+    asb = classifications('ASB.WA', {'country': 'Cyprus'}, frame)
+    assert asb['country'] == 'Poland'
+    assert asb['company_domicile'] == 'Cyprus'
+    hk = classifications('0622.HK', {'country': 'Hong Kong'}, frame)
+    assert hk['country'] == 'Hong Kong' and hk['company_domicile'] == 'Bermuda'
+    # A profile-country response is not incorporation evidence.
+    mu = classifications('MU', {'country': 'United States'}, frame)
+    assert mu['country'] == 'United States' and mu['company_domicile'] == 'Unknown'
+    assert frame['Company Domicile'].ne('Unknown').sum() == 7
+    assert frame.loc[frame['Company Domicile'].ne('Unknown'), 'Weight'].sum() == pytest.approx(.00010377)
+    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'Unknown'}}
+    assert active_limits(['A'], [1.], meta, benchmark(), CFG) is None
+
+
+def test_active_country_exposures_use_domicile_and_keep_other_views_separate():
+    frame = pd.read_csv('daily_monitor/data/benchmark_exposures.csv')
+    country = frame.loc[frame.dimension.eq('country')].set_index('category')
+    assert country.loc['Unknown', 'weight'] == pytest.approx(.99989614)
+    assert 'Cyprus' in country.index and 'Bermuda' in country.index
+    assert country.weight.sum() == pytest.approx(.99999991)
+    original = pd.read_csv('daily_monitor/data/benchmark_country_labels_exposures.csv').set_index('category')
+    assert 'Poland' in original.index
+    assert original.loc['Unknown', 'weight'] == pytest.approx(.98626665)

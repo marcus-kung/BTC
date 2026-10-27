@@ -27,3 +27,4 @@ work/
 daily_monitor/data/wls_missing_classifications.csv
 daily_monitor/data/wls_missing_listing_countries.csv
 daily_monitor/data/listing_country_unmatched_input.csv
+daily_monitor/data/wls_missing_company_domiciles.csv

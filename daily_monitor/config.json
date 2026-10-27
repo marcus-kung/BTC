@@ -59,5 +59,7 @@
     "trade_entry": "Manual by team captain in Bloomberg TMSG"
   },
   "universe_source": "WLS Stock Screening \u2013 Code & Data/WLS Data.xlsx",
-  "universe_date_confirmation_source": "Owner confirmation on 2026-10-27"
+  "universe_date_confirmation_source": "Owner confirmation on 2026-10-27",
+  "geographic_limit_basis": "company_domicile",
+  "company_domicile_source": "daily_monitor/data/company_domiciles.csv"
 }

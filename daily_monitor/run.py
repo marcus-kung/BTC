@@ -56,7 +56,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     membership_records = None
     snapshot = None
     if cfg.get('universe_source'):
-        snapshot = load_snapshot(cfg['universe_source'], rankings)
+        snapshot = load_snapshot(cfg['universe_source'], rankings, domiciles=cfg.get('company_domicile_source', 'daily_monitor/data/company_domiciles.csv'))
         membership_records = len(snapshot)
         universe = snapshot.loc[snapshot['Mapping Status'].eq('MAPPED')].copy()
     else:
@@ -143,6 +143,9 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
         weights['__CASH__'] = (cfg['cash'] or 0) / total
     exposures, exposure_errors = read_exposures(cfg['benchmark_exposures'])
     blockers.extend(exposure_errors)
+    if cfg.get('geographic_limit_basis') == 'company_domicile' and snapshot is not None and snapshot['Company Domicile'].eq('Unknown').any():
+        known_weight = float(snapshot.loc[snapshot['Company Domicile'].ne('Unknown'), 'Weight'].sum())
+        blockers.append(f'Company-domicile coverage is {known_weight:.4%} of WLS weight; unverified domiciles remain missing')
     team = pd.read_csv(cfg['team_scores']).set_index('symbol')
     risk = {'effective_holdings': float(1 / sum(v ** 2 for k, v in weights.items() if k != '__CASH__')) if weights else None,
             'target_holdings': cfg['target_holdings'], 'current_holdings': len(p),
@@ -222,6 +225,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
                'attempted': len(symbols), 'priced': len(histories), 'screen_limit': n,
                'rotation_offset': offset, 'universe_path': str(universe_path),
                'membership_verified_as_of': cfg['universe_verified_as_of'],
+               'company_domicile_classified_weight': float(snapshot.loc[snapshot['Company Domicile'].ne('Unknown'), 'Weight'].sum()) if snapshot is not None else None,
                'listing_market_classified_weight': float(snapshot.loc[snapshot['Listing Market Country'].ne('Unknown'), 'Weight'].sum()) if snapshot is not None else None,
                'listing_market_unknown_records': int(snapshot['Listing Market Country'].eq('Unknown').sum()) if snapshot is not None else None},
                'signals': signals, 'classifications': metadata, 'risk': risk, 'errors': errors, 'decisions': result, 'benchmark': benchmark,
@@ -235,7 +239,8 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     lines = [f'# Morning portfolio report — {now.date()}', '', f'Generated {now.isoformat()}. Completed exchange sessions only.',
              f"Coverage: {len(histories)}/{len(symbols)} priced; {n} rotating candidates from {len(universe)} mapped WLS listings ({membership_records or len(universe)} source records). Snapshot as of {cfg['universe_verified_as_of'] or 'unverified'}.",
              f'Portfolio decision: **{result["status"]}**.',
-             f"Listing-market benchmark coverage: {payload['coverage']['listing_market_classified_weight']:.2%}; this is exchange geography and is reported separately from the country-limit labels." if snapshot is not None else 'Listing-market exposure unavailable.',
+             f"Geographic-limit basis: {cfg.get('geographic_limit_basis', 'country_labels')}; domicile benchmark coverage {payload['coverage']['company_domicile_classified_weight']:.4%}." if snapshot is not None else 'Company-domicile exposure unavailable.',
+             f"Listing-market benchmark coverage: {payload['coverage']['listing_market_classified_weight']:.2%}; this is exchange geography and does not substitute for company domicile." if snapshot is not None else 'Listing-market exposure unavailable.',
              'Initial portfolio trades: USD 0 commission (owner confirmed).' if cfg.get('initial_trade_commission_confirmed') else 'Initial-trade commission is unconfirmed.',
              f"Cash: USD {cfg['cash']:,.2f}. Commission: USD {cfg['commission_usd_per_share']:.3f} per share per trade leg." if cfg['cash'] is not None else 'Cash is unknown.', '']
     lines += [f'- {safe_text(x)}' for x in result['reasons']]

@@ -1,0 +1,18 @@
+{
+  "file_name": "WLS_Candidate_Shortlist_company_domicile_corrected.xlsx",
+  "sha256": "1561225f98c403232a305eb8acc7d86e4a72da9c086b202145151fbc36116f83",
+  "imported_on": "2026-10-27",
+  "sheet": "Full Rankings",
+  "definition": "Jurisdiction of incorporation/legal registration; not exchange market or operating headquarters",
+  "candidate_records": 9105,
+  "source_labelled_verified_records": 7,
+  "unverified_blank_records": 9098,
+  "admission_rule": "Explicit populated Company Domicile, status beginning Verified:, and HTTPS verification URL; no inference from listing market or Country on Top 30 sheet",
+  "verification_scope": "Status/source links are supplied by the workbook. ASB.WA, CUPID.NS and SYRE were independently spot-checked against the cited official pages on import; remaining source labels are retained, not claimed independently reverified.",
+  "independently_spot_checked": [
+    "ASB.WA",
+    "CUPID.NS",
+    "SYRE"
+  ],
+  "precedence": "Company Domicile is the geographic-limit basis. Original owner-selected Country labels and listing-market labels remain separate views."
+}

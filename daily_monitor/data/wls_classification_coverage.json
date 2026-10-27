@@ -9,12 +9,14 @@
   "ambiguous_records": 4,
   "listing_country_input_rows": 9105,
   "listing_country_input_tickers_without_snapshot_match": 213,
+  "geographic_limit_basis": "company_domicile",
+  "domicile_input_records": 7,
   "source_weight_sum": 0.99999991,
   "dimensions": {
     "country": {
-      "classified_weight": 0.01373326,
-      "unknown_weight": 0.98626665,
-      "unknown_records": 10387
+      "classified_weight": 0.00010376999999999999,
+      "unknown_weight": 0.99989614,
+      "unknown_records": 10413
     },
     "sector": {
       "classified_weight": 0.9644474400000002,
@@ -25,6 +27,16 @@
       "classified_weight": 0.9644474400000002,
       "unknown_weight": 0.035552469999999996,
       "unknown_records": 1621
+    },
+    "company_domicile": {
+      "classified_weight": 0.00010376999999999999,
+      "unknown_weight": 0.99989614,
+      "unknown_records": 10413
+    },
+    "country_labels": {
+      "classified_weight": 0.01373326,
+      "unknown_weight": 0.98626665,
+      "unknown_records": 10387
     },
     "listing_market": {
       "classified_weight": 0.9658075700000001,

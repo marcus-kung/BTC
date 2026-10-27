@@ -11,7 +11,8 @@ def active_limits(names, after, metadata, benchmark, cfg):
         for s, w in zip(names, after):
             if w <= 1e-10:
                 continue
-            category = metadata.get(s, {}).get(dimension, 'Unknown')
+            field = 'company_domicile' if dimension == 'country' and cfg.get('geographic_limit_basis') == 'company_domicile' else dimension
+            category = metadata.get(s, {}).get(field, 'Unknown')
             if not category or category == 'Unknown':
                 return None
             grouped[category] = grouped.get(category, 0) + w
