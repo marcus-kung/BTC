@@ -11,6 +11,8 @@ from trading_dashboard.portfolio import read_rankings
 from .data import Yahoo, positions
 from .signals import analyse
 from .decisions import replacement
+from .costs import one_way_cost_fraction
+from .exposures import read_exposures
 
 DEFAULT_UNIVERSE = 'yahoo_enrichment/output/stock_metadata.xlsx'
 
@@ -65,8 +67,6 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
         try:
             h, info, news, stamp = provider.fetch(symbol)
             histories[symbol], infos[symbol], headlines[symbol], retrieved[symbol] = h, info, news, stamp
-            signals[symbol] = analyse(h['Adj Close'], cfg['horizon'], cfg['cost_bps_one_way'])
-            signals[symbol]['fundamental_context'] = fundamental_context(info)
             metadata[symbol] = {k: info.get(k) or 'Unknown' for k in ['sector', 'industry', 'country']}
             currency, scale = quote_units(info, cfg['quote_overrides'].get(symbol, {}))
             if currency not in fx_cache:
@@ -83,6 +83,11 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
             last_rate = float(rate.iloc[-1])
             if not np.isfinite(last_rate):
                 raise ValueError('FX unavailable at equity session date')
+            price_usd = float(h.Close.iloc[-1]) * scale * last_rate
+            fee_fraction = one_way_cost_fraction(price_usd, cfg)
+            signals[symbol] = analyse(h['Adj Close'], cfg['horizon'], fee_fraction * 10000)
+            signals[symbol].update(one_way_cost_fraction=fee_fraction, price_usd=price_usd,
+                                   fundamental_context=fundamental_context(info))
             holding = p[p.Symbol == symbol]
             if not holding.empty:
                 row = holding.iloc[0].to_dict()
@@ -105,7 +110,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     if len(values) != len(p):
         blockers.append('Incomplete current portfolio valuations; aggregate weights suppressed')
     if not cfg['constraints_confirmed']:
-        blockers.append('Confirm cash, risk limits, trading costs and competition rules in config')
+        blockers.append('Confirm remaining risk limits, non-commission trading costs and competition rules in config')
     if cfg['cash'] is None:
         blockers.append('Cash balance is unknown')
     if not cfg['purchase_units_confirmed']:
@@ -120,12 +125,8 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     weights = {s: v / total for s, v in values.items()} if len(values) == len(p) and total > 0 else {}
     if weights:
         weights['__CASH__'] = (cfg['cash'] or 0) / total
-    exposure_path = Path(cfg['benchmark_exposures'])
-    exposures = pd.read_csv(exposure_path) if exposure_path.exists() else pd.DataFrame()
-    for dimension in ['sector', 'industry', 'country']:
-        group = exposures[exposures.dimension == dimension] if 'dimension' in exposures else pd.DataFrame()
-        if group.empty or group.category.duplicated().any() or not np.isfinite(group.weight).all() or (group.weight < 0).any() or not np.isclose(group.weight.sum(), 1):
-            blockers.append(f'Provide verified WLS {dimension} weights summing to 1')
+    exposures, exposure_errors = read_exposures(cfg['benchmark_exposures'])
+    blockers.extend(exposure_errors)
     team = pd.read_csv(cfg['team_scores']).set_index('symbol')
     risk = {'effective_holdings': float(1 / sum(v ** 2 for k, v in weights.items() if k != '__CASH__')) if weights else None,
             'target_holdings': cfg['target_holdings'], 'current_holdings': len(p),
@@ -215,7 +216,8 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     (output / 'audit.json').write_text(json.dumps(clean_json(payload), indent=2, default=str, allow_nan=False))
     lines = [f'# Morning portfolio report — {now.date()}', '', f'Generated {now.isoformat()}. Completed exchange sessions only.',
              f'Coverage: {len(histories)}/{len(symbols)} priced; {n} rotating candidates from {len(universe)} historical WLS workbook records.',
-             f'Portfolio decision: **{result["status"]}**.', '']
+             f'Portfolio decision: **{result["status"]}**.',
+             f"Cash: USD {cfg['cash']:,.2f}. Commission: USD {cfg['commission_usd_per_share']:.3f} per share per trade leg." if cfg['cash'] is not None else 'Cash is unknown.', '']
     lines += [f'- {safe_text(x)}' for x in result['reasons']]
     lines += ['', '| Holding | Signal | Session | Status |', '|---|---|---|---|']
     for row in rows:

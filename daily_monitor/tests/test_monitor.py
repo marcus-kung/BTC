@@ -97,7 +97,7 @@ def test_replacement_cost_risk_and_active_limits():
                'B': pd.Series(rng.normal(0, .001, 252), index=idx)}
     sig = {s: {'qualified': True, 'recommendation': 'BUY' if s == 'B' else 'SELL',
                'forecast': .20 if s == 'B' else -.05, 'error_band': .001,
-               'suggested_weight': .05} for s in ['A', 'B']}
+               'suggested_weight': .05, 'one_way_cost_fraction': .005 / (100 if s == 'A' else 10)} for s in ['A', 'B']}
     meta = {s: {'sector': 'Tech', 'industry': 'Software', 'country': 'United States'} for s in sig}
     cfg = dict(CFG, max_position=1., min_gain=.001)
     result = replacement({'A': 1., '__CASH__': 0.}, sig, returns, meta, cfg, [], benchmark())
@@ -106,7 +106,11 @@ def test_replacement_cost_risk_and_active_limits():
     assert p['fund_from'] == 'A' and p['weight'] <= .05
     assert p['vol_after'] < p['vol_before']
     assert sum(p['weights_after'].values()) + p['cash_weight_after'] == pytest.approx(1.)
-    assert replacement({'A': 1.}, sig, returns, meta, dict(cfg, cost_bps_one_way=5000), [], benchmark())['status'] == 'NO CHANGE'
+    assert p['transaction_cost_fraction'] == pytest.approx(.05 * .005 / 100 + p['buy_value_fraction_of_original_nav'] * .005 / 10)
+    assert p['cash_weight_after'] == 0
+    assert p['buy_value_fraction_of_original_nav'] + p['transaction_cost_fraction'] == pytest.approx(.05)
+    expensive = {s: dict(v, one_way_cost_fraction=.5) for s, v in sig.items()}
+    assert replacement({'A': 1.}, expensive, returns, meta, cfg, [], benchmark())['status'] == 'NO CHANGE'
 
 
 def test_end_to_end_partial_failure_writes_report_without_fake_valuation(tmp_path):
@@ -124,6 +128,8 @@ def test_end_to_end_partial_failure_writes_report_without_fake_valuation(tmp_pat
     assert output.weight.isna().all()
     assert result['decisions']['status'] == 'BLOCKED'
     assert len(result['errors']) == 19
+    assert 'Cash balance is unknown' not in result['decisions']['reasons']
+    assert result['signals']['MU']['one_way_cost_fraction'] == pytest.approx(.005 / history.Close.iloc[-1])
     assert (tmp_path / 'out/report.md').exists()
     json.loads((tmp_path / 'out/audit.json').read_text())
 
@@ -135,3 +141,33 @@ def test_custom_exchange_calendar_requires_unexpired_source(tmp_path):
     assert expected_session('ACICO.KW', pd.Timestamp('2026-10-26T09:00Z'), override) == pd.Timestamp('2026-10-25')
     with pytest.raises(ValueError, match='expired'):
         expected_session('ACICO.KW', pd.Timestamp('2026-10-28T09:00Z'), override)
+
+
+def test_per_share_commission_uses_usd_price():
+    from daily_monitor.costs import one_way_cost_fraction
+    assert CFG['cash'] == 0
+    assert one_way_cost_fraction(100, CFG) == pytest.approx(.00005)
+    assert one_way_cost_fraction(1, CFG) == pytest.approx(.005)
+    for price in [0, -1, float('nan')]:
+        with pytest.raises(ValueError):
+            one_way_cost_fraction(price, CFG)
+
+
+def test_wls_weight_inputs_require_each_group_to_sum_to_one(tmp_path):
+    from daily_monitor.exposures import read_exposures
+    path = tmp_path / 'weights.csv'
+    content = ('dimension,category,weight,major_country\n'
+               'country,United States,0.6,true\ncountry,Japan,0.4,true\n'
+               'industry,Software,1,\nsector,Technology,1,\n')
+    path.write_text(content)
+    frame, errors = read_exposures(path)
+    assert not errors
+    assert frame.groupby('dimension').weight.sum().eq(1).all()
+    for changed in [content.replace('Japan,0.4', 'Japan,0.3'),
+                    content.replace('Japan,0.4', 'Japan,'),
+                    content.replace('Japan,0.4', 'Japan,40'),
+                    content.replace('Japan,0.4', 'United States,0.4'),
+                    content.replace('Japan,0.4,true', 'Japan,0.4,maybe')]:
+        path.write_text(changed)
+        assert read_exposures(path)[1]
+    assert read_exposures('daily_monitor/data/benchmark_exposures.csv')[1]

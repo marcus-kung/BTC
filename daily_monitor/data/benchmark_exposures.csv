@@ -1,1 +1,4 @@
 dimension,category,weight,major_country
+country,,,false
+industry,,,
+sector,,,

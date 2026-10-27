@@ -2,9 +2,8 @@
   "timezone": "Europe/London",
   "hour": 7,
   "base_currency": "USD",
-  "cash": null,
+  "cash": 0,
   "constraints_confirmed": false,
-  "cost_bps_one_way": 25,
   "max_position": 0.1,
   "max_turnover": 0.1,
   "max_vol_increase": 0.0,
@@ -37,5 +36,8 @@
     }
   },
   "initial_capital_usd": 1000000,
-  "inception_date": "2026-10-12"
+  "inception_date": "2026-10-12",
+  "commission_usd_per_share": 0.005,
+  "commission_confirmed": true,
+  "other_cost_bps_one_way": 0
 }
