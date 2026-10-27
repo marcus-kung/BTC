@@ -171,3 +171,42 @@ def test_wls_weight_inputs_require_each_group_to_sum_to_one(tmp_path):
         path.write_text(changed)
         assert read_exposures(path)[1]
     assert read_exposures('daily_monitor/data/benchmark_exposures.csv')[1]
+
+
+def test_confirmed_risk_and_initial_commission_are_separate_from_future_fees():
+    p = positions('daily_monitor/data/positions.csv')
+    assert CFG['constraints_confirmed'] and CFG['risk_limits_confirmed']
+    assert CFG['competition_rules_reviewed']
+    assert CFG['initial_trade_commission_usd'] == 0
+    assert CFG['commission_usd_per_share'] == .005
+    assert p.Commission.eq(0).all() and p['Commission Currency'].eq('USD').all()
+    assert CFG['max_position'] == .10 and CFG['hard_position'] == .125
+    assert not CFG['purchase_units_confirmed']
+    assert CFG['universe_verified_as_of'] == '2026-10-12'
+
+
+def test_outside_competition_dates_withholds_new_trade_scenarios(tmp_path):
+    def unavailable(self, symbol):
+        raise ValueError('provider unavailable')
+    with patch('daily_monitor.run.Yahoo.fetch', unavailable):
+        result = execute(CFG, Path('daily_monitor/data/positions.csv'), Path('yahoo_enrichment/output/stock_metadata.xlsx'),
+                         tmp_path / 'out', tmp_path / 'cache', pd.Timestamp('2026-11-14T07:15Z'), max_screen=0)
+    assert any('Outside the competition trading dates' in x for x in result['decisions']['reasons'])
+    assert not any('Confirm risk settings' in x for x in result['decisions']['reasons'])
+
+
+def test_dated_wls_membership_preserves_full_denominator_and_mapping_gaps(tmp_path):
+    from daily_monitor.wls import load_snapshot, map_symbol
+    from trading_dashboard.portfolio import read_rankings
+    ranking = read_rankings('yahoo_enrichment/output/stock_metadata.xlsx')
+    snapshot = load_snapshot(CFG['universe_source'], ranking)
+    assert len(snapshot) == 10420
+    assert snapshot.Weight.sum() == pytest.approx(.99999991)
+    assert snapshot['Mapping Status'].eq('MAPPED').sum() == 10175
+    # Unknown source weight stays in the denominator; no renormalisation of the matched subset.
+    assert snapshot.loc[snapshot.Sector.eq('Unknown'), 'Weight'].sum() > .03
+    assert snapshot.loc[snapshot.Country.eq('Unknown'), 'Weight'].sum() > .99
+    rules = json.loads(Path('daily_monitor/data/ticker_rules.json').read_text())
+    assert map_symbol('0622', 'XHKG', rules) == '0622.HK'
+    assert map_symbol('MM', 'XNYS', rules) == 'MM'
+    assert map_symbol('MM', 'XNSE', rules) == 'M&M.NS'

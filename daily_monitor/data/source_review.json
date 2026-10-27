@@ -1,0 +1,43 @@
+{
+  "reviewed_on": "2026-10-27",
+  "guidebook": {
+    "file_name": "Guidebook.pdf",
+    "sha256": "edf534b294fb35242391d2573096607d0b01631a65fb9d44786c980d827c3d43",
+    "rules_reviewed": true,
+    "relevant_pages": [
+      4,
+      6,
+      9,
+      10,
+      14,
+      18
+    ]
+  },
+  "wls_export": {
+    "file_name": "WLS Data (1).xlsx",
+    "sha256": "5a14ff0764f421285b4b6aa56675565c8ec83528d0d449922721acb9e8d50274",
+    "sheet": "Worksheet Raw",
+    "rows": 10420,
+    "unique_bloomberg_tickers": 10420,
+    "source_weight_unit": "percent",
+    "source_weight_sum": 99.999991,
+    "decimal_weight_sum": 0.99999991,
+    "effective_date": "2026-10-12",
+    "date_status": "Owner-confirmed snapshot date; not inferred from modification timestamp",
+    "classification_fields_present": false,
+    "exchange_lookup_country_is": "Exchange country; not company domicile or economic geography",
+    "import_status": "Active dated snapshot joined to existing Yahoo classifications; coverage gaps remain explicit",
+    "repository_raw_snapshot_exact_match": true
+  },
+  "portfolio_snapshot_review": {
+    "trade_dates_before_competition_start": [
+      "8362.T",
+      "8393.T",
+      "7389.T",
+      "8392.T"
+    ],
+    "exported_trade_date": "2026-10-09",
+    "guidebook_start_date": "2026-10-12",
+    "resolution": "Preserve supplied dates; request TMSG trade-history reconciliation before historical P&L is enabled"
+  }
+}

@@ -13,6 +13,7 @@ from .signals import analyse
 from .decisions import replacement
 from .costs import one_way_cost_fraction
 from .exposures import read_exposures
+from .wls import load_snapshot
 
 DEFAULT_UNIVERSE = 'yahoo_enrichment/output/stock_metadata.xlsx'
 
@@ -51,7 +52,15 @@ def safe_text(value):
 def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None):
     output.mkdir(parents=True, exist_ok=True)
     p = positions(input_path)
-    universe = read_rankings(universe_path).sort_values('Rank', na_position='last')
+    rankings = read_rankings(universe_path)
+    membership_records = None
+    if cfg.get('universe_source'):
+        snapshot = load_snapshot(cfg['universe_source'], rankings)
+        membership_records = len(snapshot)
+        universe = snapshot.loc[snapshot['Mapping Status'].eq('MAPPED')].copy()
+    else:
+        universe = rankings
+    universe = universe.sort_values('Rank', na_position='last')
     n = max_screen if max_screen is not None else cfg['max_screen']
     # Fixed bounded daily rotation, not an undocumented claim of a full-universe screen.
     pool = universe[~universe.Ticker.isin(p.Symbol)]
@@ -110,7 +119,12 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     if len(values) != len(p):
         blockers.append('Incomplete current portfolio valuations; aggregate weights suppressed')
     if not cfg['constraints_confirmed']:
-        blockers.append('Confirm remaining risk limits, non-commission trading costs and competition rules in config')
+        blockers.append('Confirm risk settings and review competition rules in config')
+    if cfg.get('competition_rules_reviewed'):
+        rules = cfg['competition_rules']
+        local_day = now.tz_convert(cfg['timezone']).date()
+        if not pd.Timestamp(rules['start_date']).date() <= local_day <= pd.Timestamp(rules['end_date']).date():
+            blockers.append('Outside the competition trading dates; new-trade scenarios withheld')
     if cfg['cash'] is None:
         blockers.append('Cash balance is unknown')
     if not cfg['purchase_units_confirmed']:
@@ -202,7 +216,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
                          'benchmark_return': float((1 + joint['__BENCH__']).prod() - 1)}
         except Exception as exc:
             benchmark = {'status': 'UNAVAILABLE', 'reason': str(exc)}
-    payload = {'run_at': now.isoformat(), 'coverage': {'snapshot_universe': len(universe),
+    payload = {'run_at': now.isoformat(), 'coverage': {'snapshot_universe': len(universe), 'source_membership_records': membership_records,
                'attempted': len(symbols), 'priced': len(histories), 'screen_limit': n,
                'rotation_offset': offset, 'universe_path': str(universe_path),
                'membership_verified_as_of': cfg['universe_verified_as_of']},
@@ -215,8 +229,9 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
     pd.DataFrame([{'symbol': s, **{k: v for k, v in sig.items() if k != 'folds'}} for s, sig in signals.items()]).to_csv(output / 'screen.csv', index=False)
     (output / 'audit.json').write_text(json.dumps(clean_json(payload), indent=2, default=str, allow_nan=False))
     lines = [f'# Morning portfolio report — {now.date()}', '', f'Generated {now.isoformat()}. Completed exchange sessions only.',
-             f'Coverage: {len(histories)}/{len(symbols)} priced; {n} rotating candidates from {len(universe)} historical WLS workbook records.',
+             f"Coverage: {len(histories)}/{len(symbols)} priced; {n} rotating candidates from {len(universe)} mapped WLS listings ({membership_records or len(universe)} source records). Snapshot as of {cfg['universe_verified_as_of'] or 'unverified'}.",
              f'Portfolio decision: **{result["status"]}**.',
+             'Initial portfolio trades: USD 0 commission (owner confirmed).' if cfg.get('initial_trade_commission_confirmed') else 'Initial-trade commission is unconfirmed.',
              f"Cash: USD {cfg['cash']:,.2f}. Commission: USD {cfg['commission_usd_per_share']:.3f} per share per trade leg." if cfg['cash'] is not None else 'Cash is unknown.', '']
     lines += [f'- {safe_text(x)}' for x in result['reasons']]
     lines += ['', '| Holding | Signal | Session | Status |', '|---|---|---|---|']
