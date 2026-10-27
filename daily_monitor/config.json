@@ -60,6 +60,6 @@
   },
   "universe_source": "WLS Stock Screening \u2013 Code & Data/WLS Data.xlsx",
   "universe_date_confirmation_source": "Owner confirmation on 2026-10-27",
-  "geographic_limit_basis": "company_domicile",
+  "geographic_limit_basis": "listing_market",
   "company_domicile_source": "daily_monitor/data/company_domiciles.csv"
 }

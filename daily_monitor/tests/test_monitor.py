@@ -79,9 +79,9 @@ def benchmark():
 
 
 def test_active_exposures_are_relative_and_unknown_blocks():
-    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'United States'}}
+    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'United States', 'listing_market_country': 'United States'}}
     assert active_limits(['A'], [1.], meta, benchmark(), CFG) is not None
-    meta['A']['company_domicile'] = 'Unknown'
+    meta['A']['listing_market_country'] = 'Unknown'
     assert active_limits(['A'], [1.], meta, benchmark(), CFG) is None
 
 
@@ -98,7 +98,7 @@ def test_replacement_cost_risk_and_active_limits():
     sig = {s: {'qualified': True, 'recommendation': 'BUY' if s == 'B' else 'SELL',
                'forecast': .20 if s == 'B' else -.05, 'error_band': .001,
                'suggested_weight': .05, 'one_way_cost_fraction': .005 / (100 if s == 'A' else 10)} for s in ['A', 'B']}
-    meta = {s: {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'United States'} for s in sig}
+    meta = {s: {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'United States', 'listing_market_country': 'United States'} for s in sig}
     cfg = dict(CFG, max_position=1., min_gain=.001)
     result = replacement({'A': 1., '__CASH__': 0.}, sig, returns, meta, cfg, [], benchmark())
     assert result['status'] == 'REVIEW'
@@ -313,15 +313,26 @@ def test_domicile_risk_basis_preserves_owner_labels_without_using_them_as_eviden
     assert frame['Company Domicile'].ne('Unknown').sum() == 7
     assert frame.loc[frame['Company Domicile'].ne('Unknown'), 'Weight'].sum() == pytest.approx(.00010377)
     meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'United States', 'company_domicile': 'Unknown'}}
-    assert active_limits(['A'], [1.], meta, benchmark(), CFG) is None
+    assert active_limits(['A'], [1.], meta, benchmark(), dict(CFG, geographic_limit_basis='company_domicile')) is None
 
 
-def test_active_country_exposures_use_domicile_and_keep_other_views_separate():
+def test_active_country_exposures_use_listing_market_and_keep_other_views_separate():
     frame = pd.read_csv('daily_monitor/data/benchmark_exposures.csv')
     country = frame.loc[frame.dimension.eq('country')].set_index('category')
-    assert country.loc['Unknown', 'weight'] == pytest.approx(.99989614)
-    assert 'Cyprus' in country.index and 'Bermuda' in country.index
+    assert country.loc['Unknown', 'weight'] == pytest.approx(.03419234)
+    assert 'Poland' in country.index and 'Hong Kong' in country.index
+    assert 'Cyprus' not in country.index and 'Bermuda' not in country.index
     assert country.weight.sum() == pytest.approx(.99999991)
     original = pd.read_csv('daily_monitor/data/benchmark_country_labels_exposures.csv').set_index('category')
     assert 'Poland' in original.index
     assert original.loc['Unknown', 'weight'] == pytest.approx(.98626665)
+
+
+def test_listing_market_limits_ignore_missing_or_conflicting_domicile():
+    meta = {'A': {'sector': 'Tech', 'industry': 'Software', 'country': 'Ireland',
+                  'company_domicile': 'Unknown', 'listing_market_country': 'United States'}}
+    assert CFG['geographic_limit_basis'] == 'listing_market'
+    assert active_limits(['A'], [1.], meta, benchmark(), CFG) is not None
+    meta['A']['listing_market_country'] = 'Unknown'
+    meta['A']['company_domicile'] = 'United States'
+    assert active_limits(['A'], [1.], meta, benchmark(), CFG) is None

@@ -144,9 +144,9 @@ def build(source, metadata, output, as_of=None):
     domicile_path = cfg.get('company_domicile_source', 'daily_monitor/data/company_domiciles.csv')
     frame = load_snapshot(source, read_rankings(metadata), domiciles=domicile_path)
     country_basis = cfg.get('geographic_limit_basis', 'country_labels')
-    if country_basis not in ('country_labels', 'company_domicile'):
-        raise ValueError('Geographic limit basis must be country_labels or company_domicile')
-    country_column = 'Company Domicile' if country_basis == 'company_domicile' else 'Country'
+    if country_basis not in ('country_labels', 'company_domicile', 'listing_market'):
+        raise ValueError('Geographic limit basis must be country_labels, company_domicile or listing_market')
+    country_column = {'company_domicile': 'Company Domicile', 'listing_market': 'Listing Market Country', 'country_labels': 'Country'}[country_basis]
     output.mkdir(parents=True, exist_ok=True)
     exposure_rows, coverage = [], {}
     for column in ['Country', 'Sector', 'Industry']:

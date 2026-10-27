@@ -2,6 +2,8 @@
 
 This project refreshes the 20 positions imported from `portfolio(1).csv`, evaluates stock signals, screens a bounded portion of the existing WLS candidate workbook, and produces a morning report. It **never executes trades**. The input CSV is a positions snapshot: updating prices never changes quantities or invents cash. Update it after manual trades/corporate actions.
 
+The current geographic-limit basis is **listing-exchange country** (`geographic_limit_basis: listing_market`), per the owner’s latest instruction. Active country weights and scenario checks use the original listing-country input, covering 96.580757% of WLS weight. Domicile data are retained as reference and do not gate this selected geography. Historical review notes below document earlier basis choices.
+
 ## Run and outputs
 
 From the repository root, using Python 3.12 or later:
@@ -149,3 +151,10 @@ All seven map unambiguously to the dated WLS snapshot: ASB.WA (Cyprus), 0622.HK 
 Unknown domicile weight is preserved using the full denominator; risk-dependent proposals remain blocked until domicile coverage is sufficient for the required comparisons. This stricter field prevents filling the entire Country sheet with exchange labels from making unverified geographic exposures appear complete. The report explicitly states the limit basis and domicile coverage. `wls_missing_company_domiciles.csv` is a reproducible local completion list, and `domicile_source_review.json` records the workbook hash, admission rule, source counts and verification scope. Existing histories and price/P&L prerequisites are unaffected.
 
 This section supersedes earlier descriptions of country-label geography as the active risk basis; those descriptions document the retained legacy view. The listing-market data remain informational, as the owner requested while preparing this domicile file.
+
+
+### Active geography choice: listing-exchange country
+
+The owner subsequently chose **listing-exchange country instead of domicile** for geographic limits. The current `geographic_limit_basis` is `listing_market`. Both benchmark country rows and scenario country exposures now use `Listing Market Country` / `listing_market_country` from the original supplied listing-country file. Active geographic coverage is **96.580757%** of WLS weight; the remaining 3.419234% is retained as Unknown. Domicile completeness no longer gates geographic decisions under this selected basis. Other missing classifications, current prices and portfolio prerequisites remain independent.
+
+The report identifies the selected basis and its corresponding coverage. Domicile and original owner Country labels remain in separate reference fields/exposure files. This choice explicitly treats country as exchange geography for this monitor. It supersedes the prior domicile-based selection documented above; it does not relabel exchange countries as verified legal domicile.

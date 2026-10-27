@@ -1,10 +1,45 @@
 dimension,category,weight,major_country
-country,Bermuda,1.028e-05,False
-country,Cyprus,1.4170000000000002e-05,False
-country,India,2.21e-05,False
-country,Kuwait,3.1799999999999996e-06,False
-country,United States,5.404e-05,False
-country,Unknown,0.9998961399999999,False
+country,Australia,0.01430978,False
+country,Austria,0.0009412,False
+country,Belgium,0.00241531,False
+country,Canada,0.0286235,False
+country,Chile,0.00061148,False
+country,China,0.02167171,False
+country,Colombia,0.00020234,False
+country,Denmark,0.00334868,False
+country,Egypt,0.00015862,False
+country,Finland,0.00246481,False
+country,France,0.01741072,False
+country,Germany,0.01639556,False
+country,Greece,0.00073653,False
+country,Hong Kong,0.02129513,False
+country,India,0.01517798,False
+country,Indonesia,0.0008598200000000001,False
+country,Ireland,0.0006563099999999999,False
+country,Israel,0.00281507,False
+country,Italy,0.0068143,False
+country,Japan,0.05710819,False
+country,Kuwait,0.00067912,False
+country,Malaysia,0.00026975,False
+country,Mexico,0.00235398,False
+country,Netherlands,0.01041914,False
+country,Norway,0.00183718,False
+country,Poland,0.00153164,False
+country,Portugal,0.00044939000000000003,False
+country,Qatar,0.00060141,False
+country,Saudi Arabia,0.00258631,False
+country,Singapore,0.00252346,False
+country,South Africa,0.00334382,False
+country,South Korea,0.02278173,False
+country,Sweden,0.00712444,False
+country,Switzerland,0.01723636,False
+country,Taiwan,0.03314377,False
+country,Thailand,0.00200192,False
+country,Turkey,0.00068387,False
+country,United Arab Emirates,0.00064328,False
+country,United Kingdom,0.028969099999999998,False
+country,United States,0.61261086,False
+country,Unknown,0.03419234,False
 sector,Basic Materials,0.03922449,
 sector,Communication Services,0.07138773,
 sector,Consumer Cyclical,0.08364624,
