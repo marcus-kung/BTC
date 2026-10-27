@@ -131,6 +131,14 @@ def test_end_to_end_partial_failure_writes_report_without_fake_valuation(tmp_pat
     assert 'Cash balance is unknown' not in result['decisions']['reasons']
     assert result['signals']['MU']['one_way_cost_fraction'] == pytest.approx(.005 / history.Close.iloc[-1])
     assert (tmp_path / 'out/report.md').exists()
+    manual = json.loads(Path(CFG['reported_performance_path']).read_text())
+    assert result['reported_performance'] == manual
+    assert not manual['automatically_refreshed'] and not manual['reconciled_to_positions']
+    report = (tmp_path / 'out/report.md').read_text()
+    assert f"{manual['portfolio_pnl']:,.0f}" in report
+    assert f"{manual['relative_pnl_vs_wls']:,.0f}" in report
+    assert f"{manual['portfolio_return']:.2%}" in report
+    assert manual['as_of_date'] in report
     json.loads((tmp_path / 'out/audit.json').read_text())
 
 

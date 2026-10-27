@@ -1,0 +1,12 @@
+{
+  "as_of_date": "2026-10-27",
+  "as_of_time": null,
+  "timezone": "Europe/London",
+  "source": "Owner-reported current performance",
+  "currency": "USD",
+  "portfolio_pnl": -46056,
+  "relative_pnl_vs_wls": -30683,
+  "portfolio_return": -0.0461,
+  "automatically_refreshed": false,
+  "reconciled_to_positions": false
+}

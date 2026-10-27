@@ -221,6 +221,9 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
                          'benchmark_return': float((1 + joint['__BENCH__']).prod() - 1)}
         except Exception as exc:
             benchmark = {'status': 'UNAVAILABLE', 'reason': str(exc)}
+    reported_performance = None
+    if cfg.get('reported_performance_path'):
+        reported_performance = json.loads(Path(cfg['reported_performance_path']).read_text())
     geographic_column = {'company_domicile': 'Company Domicile', 'listing_market': 'Listing Market Country', 'country_labels': 'Country'}[cfg.get('geographic_limit_basis', 'country_labels')]
     geographic_label = {'company_domicile': 'company domicile', 'listing_market': 'listing-exchange country', 'country_labels': 'owner country labels'}[cfg.get('geographic_limit_basis', 'country_labels')]
     payload = {'run_at': now.isoformat(), 'coverage': {'snapshot_universe': len(universe), 'source_membership_records': membership_records,
@@ -232,7 +235,7 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
                'company_domicile_classified_weight': float(snapshot.loc[snapshot['Company Domicile'].ne('Unknown'), 'Weight'].sum()) if snapshot is not None else None,
                'listing_market_classified_weight': float(snapshot.loc[snapshot['Listing Market Country'].ne('Unknown'), 'Weight'].sum()) if snapshot is not None else None,
                'listing_market_unknown_records': int(snapshot['Listing Market Country'].eq('Unknown').sum()) if snapshot is not None else None},
-               'signals': signals, 'classifications': metadata, 'risk': risk, 'errors': errors, 'decisions': result, 'benchmark': benchmark,
+               'reported_performance': reported_performance, 'signals': signals, 'classifications': metadata, 'risk': risk, 'errors': errors, 'decisions': result, 'benchmark': benchmark,
                'fundamentals': {s: {k: i.get(k) for k in ['sector', 'trailingPE', 'forwardPE', 'revenueGrowth',
                    'profitMargins', 'debtToEquity', 'freeCashflow', 'marketCap', '_warnings', '_news_status']}
                    for s, i in infos.items()}, 'news': headlines, 'retrieved_at': retrieved,
@@ -246,6 +249,10 @@ def execute(cfg, input_path, universe_path, output, cache, now, max_screen=None)
              f"Geographic-limit basis: {geographic_label}; benchmark coverage {payload['coverage']['geographic_classified_weight']:.2%}." if snapshot is not None else 'Geographic exposure unavailable.',
              'Initial portfolio trades: USD 0 commission (owner confirmed).' if cfg.get('initial_trade_commission_confirmed') else 'Initial-trade commission is unconfirmed.',
              f"Cash: USD {cfg['cash']:,.2f}. Commission: USD {cfg['commission_usd_per_share']:.3f} per share per trade leg." if cfg['cash'] is not None else 'Cash is unknown.', '']
+    if reported_performance:
+        rp = reported_performance
+        lines += [f"Owner-reported snapshot ({safe_text(rp['as_of_date'])}, exact time unspecified): P&L {safe_text(rp['currency'])} {rp['portfolio_pnl']:,.0f}; relative P&L versus WLS {safe_text(rp['currency'])} {rp['relative_pnl_vs_wls']:,.0f}; portfolio return {rp['portfolio_return']:.2%}.",
+                  'This dated manual snapshot is not automatically refreshed or reconciled to current positions.', '']
     lines += [f'- {safe_text(x)}' for x in result['reasons']]
     lines += ['', '| Holding | Signal | Session | Status |', '|---|---|---|---|']
     for row in rows:
