@@ -1,7 +1,7 @@
-# Morning portfolio report — 2026-11-07
+# Morning portfolio report — 2026-11-08
 
-Generated 2026-11-07T14:02:56.989922+00:00. Completed exchange sessions only.
-Coverage: 164/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
+Generated 2026-11-08T14:18:48.188654+00:00. Completed exchange sessions only.
+Coverage: 163/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
 Portfolio decision: **BLOCKED**.
 Geographic-limit basis: listing-exchange country; benchmark coverage 96.58%.
 Initial portfolio trades: USD 0 commission (owner confirmed).
@@ -54,7 +54,7 @@ Up to five holdings/candidates shown; all fundamentals and headlines are in audi
 **MU** — Profitable with positive reported revenue growth. P/E 9.2829275; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
 No recent accessible headlines returned (not evidence of no news).
 
-**CLMT** — Loss-making on reported margin. P/E None; revenue growth 0.408; margin -0.029790001; debt/equity None; FCF 172562496.
+**CLMT** — Loss-making on reported margin. P/E None; revenue growth 0.561; margin -0.0373; debt/equity None; FCF 305112512.
 No recent accessible headlines returned (not evidence of no news).
 
 **ATEX** — Profitable with positive reported revenue growth. P/E 21.245714; revenue growth 0.381; margin 9.33035; debt/equity 1.43; FCF -71296376.
@@ -66,6 +66,6 @@ No recent accessible headlines returned (not evidence of no news).
 **MBX** — Insufficient/neutral fundamental context. P/E None; revenue growth None; margin 0.0; debt/equity 0.816; FCF -53012124.
 No recent accessible headlines returned (not evidence of no news).
 
-Data failures: 6 (see audit.json).
+Data failures: 7 (see audit.json).
 Research only. HOLD includes abstention. Models may fail under regime changes; costs/FX/taxes/liquidity can erase gains. No trades are executed.
 Returns use adjusted prices; valuation uses raw closes. Error bands are heuristics, not calibrated confidence intervals.
