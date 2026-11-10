@@ -1,7 +1,7 @@
-# Morning portfolio report — 2026-11-09
+# Morning portfolio report — 2026-11-10
 
-Generated 2026-11-09T17:30:47.469994+00:00. Completed exchange sessions only.
-Coverage: 97/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
+Generated 2026-11-10T15:37:19.999875+00:00. Completed exchange sessions only.
+Coverage: 138/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
 Portfolio decision: **BLOCKED**.
 Geographic-limit basis: listing-exchange country; benchmark coverage 96.58%.
 Initial portfolio trades: USD 0 commission (owner confirmed).
@@ -19,25 +19,25 @@ This dated manual snapshot is not automatically refreshed or reconciled to curre
 
 | Holding | Signal | Session | Status |
 |---|---|---|---|
-| MU | HOLD | 2026-11-06 | CURRENT |
-| CLMT | HOLD | 2026-11-06 | CURRENT |
-| ATEX | HOLD | 2026-11-06 | CURRENT |
-| STX | HOLD | 2026-11-06 | CURRENT |
-| MBX | HOLD | 2026-11-06 | CURRENT |
-| PACS | HOLD | 2026-11-06 | CURRENT |
-| TXG | HOLD | 2026-11-06 | CURRENT |
-| RVMD | HOLD | 2026-11-06 | CURRENT |
-| SYRE | HOLD | 2026-11-06 | CURRENT |
-| ORKA | HOLD | 2026-11-06 | CURRENT |
-| 603268.SS | HOLD | — | UNAVAILABLE |
-| AKFIS.IS | HOLD | 2026-11-09 | CURRENT |
+| MU | HOLD | 2026-11-09 | CURRENT |
+| CLMT | HOLD | 2026-11-09 | CURRENT |
+| ATEX | HOLD | 2026-11-09 | CURRENT |
+| STX | HOLD | 2026-11-09 | CURRENT |
+| MBX | HOLD | 2026-11-09 | CURRENT |
+| PACS | HOLD | 2026-11-09 | CURRENT |
+| TXG | HOLD | 2026-11-09 | CURRENT |
+| RVMD | HOLD | 2026-11-09 | CURRENT |
+| SYRE | HOLD | 2026-11-09 | CURRENT |
+| ORKA | HOLD | 2026-11-09 | CURRENT |
+| 603268.SS | HOLD | 2026-11-10 | CURRENT |
+| AKFIS.IS | HOLD | 2026-11-10 | CURRENT |
 | ACICO.KW | HOLD | — | UNAVAILABLE |
 | 8362.T | HOLD | — | UNAVAILABLE |
 | 8393.T | HOLD | — | UNAVAILABLE |
 | 7389.T | HOLD | — | UNAVAILABLE |
 | 8392.T | HOLD | — | UNAVAILABLE |
 | CUPID.NS | HOLD | 2026-11-09 | CURRENT |
-| 0622.HK | HOLD | — | UNAVAILABLE |
+| 0622.HK | HOLD | 2026-11-10 | CURRENT |
 | ASB.WA | HOLD | 2026-11-09 | CURRENT |
 
 Portfolio risk: Aggregate risk unavailable until all holdings are valued; 20 current holdings versus target 12–15.
@@ -51,21 +51,21 @@ WLS benchmark: Supply an authorised WLS benchmark ticker; no proxy silently subs
 ### Current fundamental context and recent headlines
 Up to five holdings/candidates shown; all fundamentals and headlines are in audit.json. Snapshot ratios are descriptive, not point-in-time backtest inputs. Headlines require manual relevance and full-text checks; no sentiment score is inferred.
 
-**MU** — Profitable with positive reported revenue growth. P/E 9.854702; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
+**MU** — Profitable with positive reported revenue growth. P/E 9.700524; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
 No recent accessible headlines returned (not evidence of no news).
 
 **CLMT** — Loss-making on reported margin. P/E None; revenue growth 0.561; margin -0.0373; debt/equity None; FCF 305112512.
 No recent accessible headlines returned (not evidence of no news).
 
-**ATEX** — Profitable with positive reported revenue growth. P/E 22.662857; revenue growth 0.381; margin 9.33035; debt/equity 1.43; FCF -71296376.
+**ATEX** — Profitable with positive reported revenue growth. P/E 22.56; revenue growth 0.381; margin 9.33035; debt/equity 1.43; FCF -71296376.
 No recent accessible headlines returned (not evidence of no news).
 
-**STX** — Profitable with positive reported revenue growth. P/E 26.74646; revenue growth 0.61; margin 0.31857002; debt/equity 77.382; FCF 2296750080.
+**STX** — Profitable with positive reported revenue growth. P/E 25.981663; revenue growth 0.61; margin 0.31857002; debt/equity 77.382; FCF 2296750080.
 No recent accessible headlines returned (not evidence of no news).
 
-**MBX** — Insufficient/neutral fundamental context. P/E None; revenue growth None; margin 0.0; debt/equity 0.816; FCF -53012124.
+**MBX** — Insufficient/neutral fundamental context. P/E None; revenue growth None; margin 0.0; debt/equity 0.816; FCF None.
 No recent accessible headlines returned (not evidence of no news).
 
-Data failures: 73 (see audit.json).
+Data failures: 32 (see audit.json).
 Research only. HOLD includes abstention. Models may fail under regime changes; costs/FX/taxes/liquidity can erase gains. No trades are executed.
 Returns use adjusted prices; valuation uses raw closes. Error bands are heuristics, not calibrated confidence intervals.
