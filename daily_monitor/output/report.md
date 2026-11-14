@@ -1,7 +1,7 @@
-# Morning portfolio report — 2026-11-13
+# Morning portfolio report — 2026-11-14
 
-Generated 2026-11-13T15:25:06.084962+00:00. Completed exchange sessions only.
-Coverage: 140/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
+Generated 2026-11-14T14:10:23.169923+00:00. Completed exchange sessions only.
+Coverage: 169/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
 Portfolio decision: **BLOCKED**.
 Geographic-limit basis: listing-exchange country; benchmark coverage 96.58%.
 Initial portfolio trades: USD 0 commission (owner confirmed).
@@ -11,6 +11,7 @@ Owner-reported snapshot (2026-10-27, exact time unspecified): P&L USD -46,056; r
 This dated manual snapshot is not automatically refreshed or reconciled to current positions.
 
 - Incomplete current portfolio valuations; aggregate weights suppressed
+- Outside the competition trading dates; new-trade scenarios withheld
 - Purchase-price units/corporate actions unconfirmed; cost/P&amp;L suppressed
 - Stated ACICO total purchase cost is unreconciled with shares × price × currency
 - WLS country: enter actual benchmark categories
@@ -19,26 +20,26 @@ This dated manual snapshot is not automatically refreshed or reconciled to curre
 
 | Holding | Signal | Session | Status |
 |---|---|---|---|
-| MU | HOLD | 2026-11-12 | CURRENT |
-| CLMT | HOLD | 2026-11-12 | CURRENT |
-| ATEX | HOLD | 2026-11-12 | CURRENT |
-| STX | HOLD | 2026-11-12 | CURRENT |
-| MBX | HOLD | 2026-11-12 | CURRENT |
-| PACS | HOLD | 2026-11-12 | CURRENT |
-| TXG | HOLD | 2026-11-12 | CURRENT |
-| RVMD | HOLD | 2026-11-12 | CURRENT |
-| SYRE | HOLD | 2026-11-12 | CURRENT |
-| ORKA | HOLD | 2026-11-12 | CURRENT |
+| MU | HOLD | 2026-11-13 | CURRENT |
+| CLMT | HOLD | 2026-11-13 | CURRENT |
+| ATEX | HOLD | 2026-11-13 | CURRENT |
+| STX | HOLD | 2026-11-13 | CURRENT |
+| MBX | HOLD | 2026-11-13 | CURRENT |
+| PACS | HOLD | 2026-11-13 | CURRENT |
+| TXG | HOLD | 2026-11-13 | CURRENT |
+| RVMD | HOLD | 2026-11-13 | CURRENT |
+| SYRE | HOLD | 2026-11-13 | CURRENT |
+| ORKA | HOLD | 2026-11-13 | CURRENT |
 | 603268.SS | HOLD | 2026-11-13 | CURRENT |
-| AKFIS.IS | HOLD | 2026-11-12 | CURRENT |
+| AKFIS.IS | HOLD | 2026-11-13 | CURRENT |
 | ACICO.KW | HOLD | — | UNAVAILABLE |
-| 8362.T | HOLD | — | UNAVAILABLE |
-| 8393.T | HOLD | — | UNAVAILABLE |
-| 7389.T | HOLD | — | UNAVAILABLE |
-| 8392.T | HOLD | — | UNAVAILABLE |
+| 8362.T | HOLD | 2026-11-13 | CURRENT |
+| 8393.T | HOLD | 2026-11-13 | CURRENT |
+| 7389.T | HOLD | 2026-11-13 | CURRENT |
+| 8392.T | HOLD | 2026-11-13 | CURRENT |
 | CUPID.NS | HOLD | 2026-11-13 | CURRENT |
 | 0622.HK | HOLD | 2026-11-13 | CURRENT |
-| ASB.WA | HOLD | 2026-11-12 | CURRENT |
+| ASB.WA | HOLD | 2026-11-13 | CURRENT |
 
 Portfolio risk: Aggregate risk unavailable until all holdings are valued; 20 current holdings versus target 12–15.
 
@@ -51,21 +52,21 @@ WLS benchmark: Supply an authorised WLS benchmark ticker; no proxy silently subs
 ### Current fundamental context and recent headlines
 Up to five holdings/candidates shown; all fundamentals and headlines are in audit.json. Snapshot ratios are descriptive, not point-in-time backtest inputs. Headlines require manual relevance and full-text checks; no sentiment score is inferred.
 
-**MU** — Profitable with positive reported revenue growth. P/E 10.234629; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
+**MU** — Profitable with positive reported revenue growth. P/E 10.471007; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
 No recent accessible headlines returned (not evidence of no news).
 
 **CLMT** — Loss-making on reported margin. P/E None; revenue growth 0.561; margin -0.0373; debt/equity None; FCF 305112512.
 No recent accessible headlines returned (not evidence of no news).
 
-**ATEX** — Profitable with positive reported revenue growth. P/E 212.11789; revenue growth 0.262; margin 0.96226996; debt/equity 1.618; FCF -57858500.
+**ATEX** — Profitable with positive reported revenue growth. P/E 210.89474; revenue growth 0.262; margin 0.96226996; debt/equity 1.618; FCF -57858500.
 No recent accessible headlines returned (not evidence of no news).
 
-**STX** — Profitable with positive reported revenue growth. P/E 26.945463; revenue growth 0.61; margin 0.31857002; debt/equity 77.382; FCF 2296750080.
+**STX** — Profitable with positive reported revenue growth. P/E 27.702673; revenue growth 0.61; margin 0.31857002; debt/equity 77.382; FCF 2296750080.
 No recent accessible headlines returned (not evidence of no news).
 
 **MBX** — Insufficient/neutral fundamental context. P/E None; revenue growth None; margin 0.0; debt/equity 0.696; FCF -54004752.
 No recent accessible headlines returned (not evidence of no news).
 
-Data failures: 30 (see audit.json).
+Data failures: 1 (see audit.json).
 Research only. HOLD includes abstention. Models may fail under regime changes; costs/FX/taxes/liquidity can erase gains. No trades are executed.
 Returns use adjusted prices; valuation uses raw closes. Error bands are heuristics, not calibrated confidence intervals.
