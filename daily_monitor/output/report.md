@@ -1,7 +1,7 @@
-# Morning portfolio report — 2026-11-14
+# Morning portfolio report — 2026-11-15
 
-Generated 2026-11-14T14:10:23.169923+00:00. Completed exchange sessions only.
-Coverage: 169/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
+Generated 2026-11-15T14:46:44.174118+00:00. Completed exchange sessions only.
+Coverage: 159/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
 Portfolio decision: **BLOCKED**.
 Geographic-limit basis: listing-exchange country; benchmark coverage 96.58%.
 Initial portfolio trades: USD 0 commission (owner confirmed).
@@ -67,6 +67,6 @@ No recent accessible headlines returned (not evidence of no news).
 **MBX** — Insufficient/neutral fundamental context. P/E None; revenue growth None; margin 0.0; debt/equity 0.696; FCF -54004752.
 No recent accessible headlines returned (not evidence of no news).
 
-Data failures: 1 (see audit.json).
+Data failures: 11 (see audit.json).
 Research only. HOLD includes abstention. Models may fail under regime changes; costs/FX/taxes/liquidity can erase gains. No trades are executed.
 Returns use adjusted prices; valuation uses raw closes. Error bands are heuristics, not calibrated confidence intervals.
