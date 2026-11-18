@@ -1,7 +1,7 @@
-# Morning portfolio report — 2026-11-17
+# Morning portfolio report — 2026-11-18
 
-Generated 2026-11-17T16:54:20.540748+00:00. Completed exchange sessions only.
-Coverage: 90/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
+Generated 2026-11-18T16:28:28.756896+00:00. Completed exchange sessions only.
+Coverage: 91/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
 Portfolio decision: **BLOCKED**.
 Geographic-limit basis: listing-exchange country; benchmark coverage 96.58%.
 Initial portfolio trades: USD 0 commission (owner confirmed).
@@ -20,24 +20,24 @@ This dated manual snapshot is not automatically refreshed or reconciled to curre
 
 | Holding | Signal | Session | Status |
 |---|---|---|---|
-| MU | HOLD | 2026-11-16 | CURRENT |
-| CLMT | HOLD | 2026-11-16 | CURRENT |
-| ATEX | HOLD | 2026-11-16 | CURRENT |
-| STX | HOLD | 2026-11-16 | CURRENT |
-| MBX | HOLD | 2026-11-16 | CURRENT |
-| PACS | HOLD | 2026-11-16 | CURRENT |
-| TXG | HOLD | 2026-11-16 | CURRENT |
-| RVMD | HOLD | 2026-11-16 | CURRENT |
-| SYRE | HOLD | 2026-11-16 | CURRENT |
-| ORKA | HOLD | 2026-11-16 | CURRENT |
+| MU | HOLD | 2026-11-17 | CURRENT |
+| CLMT | HOLD | 2026-11-17 | CURRENT |
+| ATEX | HOLD | 2026-11-17 | CURRENT |
+| STX | HOLD | 2026-11-17 | CURRENT |
+| MBX | HOLD | 2026-11-17 | CURRENT |
+| PACS | HOLD | 2026-11-17 | CURRENT |
+| TXG | HOLD | 2026-11-17 | CURRENT |
+| RVMD | HOLD | 2026-11-17 | CURRENT |
+| SYRE | HOLD | 2026-11-17 | CURRENT |
+| ORKA | HOLD | 2026-11-17 | CURRENT |
 | 603268.SS | HOLD | — | UNAVAILABLE |
-| AKFIS.IS | HOLD | 2026-11-17 | CURRENT |
+| AKFIS.IS | HOLD | 2026-11-18 | CURRENT |
 | ACICO.KW | HOLD | — | UNAVAILABLE |
 | 8362.T | HOLD | — | UNAVAILABLE |
 | 8393.T | HOLD | — | UNAVAILABLE |
 | 7389.T | HOLD | — | UNAVAILABLE |
 | 8392.T | HOLD | — | UNAVAILABLE |
-| CUPID.NS | HOLD | 2026-11-17 | CURRENT |
+| CUPID.NS | HOLD | 2026-11-18 | CURRENT |
 | 0622.HK | HOLD | — | UNAVAILABLE |
 | ASB.WA | HOLD | 2026-11-17 | CURRENT |
 
@@ -52,21 +52,21 @@ WLS benchmark: Supply an authorised WLS benchmark ticker; no proxy silently subs
 ### Current fundamental context and recent headlines
 Up to five holdings/candidates shown; all fundamentals and headlines are in audit.json. Snapshot ratios are descriptive, not point-in-time backtest inputs. Headlines require manual relevance and full-text checks; no sentiment score is inferred.
 
-**MU** — Profitable with positive reported revenue growth. P/E 9.2338505; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
+**MU** — Profitable with positive reported revenue growth. P/E 9.31831; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
 No recent accessible headlines returned (not evidence of no news).
 
 **CLMT** — Loss-making on reported margin. P/E None; revenue growth 0.561; margin -0.0373; debt/equity None; FCF 305112512.
 No recent accessible headlines returned (not evidence of no news).
 
-**ATEX** — Profitable with positive reported revenue growth. P/E 203.7237; revenue growth 0.262; margin 0.96226996; debt/equity 1.618; FCF -57858500.
+**ATEX** — Profitable with positive reported revenue growth. P/E 208.28947; revenue growth 0.262; margin 0.96226996; debt/equity 1.618; FCF -57858500.
 No recent accessible headlines returned (not evidence of no news).
 
-**STX** — Profitable with positive reported revenue growth. P/E 25.673313; revenue growth 0.61; margin 0.31857002; debt/equity 77.382; FCF 2296750080.
+**STX** — Profitable with positive reported revenue growth. P/E 26.174097; revenue growth 0.61; margin 0.31857002; debt/equity 77.382; FCF 2296750080.
 No recent accessible headlines returned (not evidence of no news).
 
 **MBX** — Insufficient/neutral fundamental context. P/E None; revenue growth None; margin 0.0; debt/equity 0.696; FCF -54004752.
 No recent accessible headlines returned (not evidence of no news).
 
-Data failures: 80 (see audit.json).
+Data failures: 79 (see audit.json).
 Research only. HOLD includes abstention. Models may fail under regime changes; costs/FX/taxes/liquidity can erase gains. No trades are executed.
 Returns use adjusted prices; valuation uses raw closes. Error bands are heuristics, not calibrated confidence intervals.
