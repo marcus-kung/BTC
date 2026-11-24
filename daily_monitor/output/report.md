@@ -1,6 +1,6 @@
-# Morning portfolio report — 2026-11-23
+# Morning portfolio report — 2026-11-24
 
-Generated 2026-11-23T19:15:41.125572+00:00. Completed exchange sessions only.
+Generated 2026-11-24T18:55:03.682178+00:00. Completed exchange sessions only.
 Coverage: 77/170 priced; 150 rotating candidates from 10175 mapped WLS listings (10420 source records). Snapshot as of 2026-10-12.
 Portfolio decision: **BLOCKED**.
 Geographic-limit basis: listing-exchange country; benchmark coverage 96.58%.
@@ -20,26 +20,26 @@ This dated manual snapshot is not automatically refreshed or reconciled to curre
 
 | Holding | Signal | Session | Status |
 |---|---|---|---|
-| MU | HOLD | 2026-11-20 | CURRENT |
-| CLMT | HOLD | 2026-11-20 | CURRENT |
-| ATEX | HOLD | 2026-11-20 | CURRENT |
-| STX | HOLD | 2026-11-20 | CURRENT |
-| MBX | HOLD | 2026-11-20 | CURRENT |
-| PACS | HOLD | 2026-11-20 | CURRENT |
-| TXG | HOLD | 2026-11-20 | CURRENT |
-| RVMD | HOLD | 2026-11-20 | CURRENT |
-| SYRE | HOLD | 2026-11-20 | CURRENT |
-| ORKA | HOLD | 2026-11-20 | CURRENT |
+| MU | HOLD | 2026-11-23 | CURRENT |
+| CLMT | HOLD | 2026-11-23 | CURRENT |
+| ATEX | HOLD | 2026-11-23 | CURRENT |
+| STX | HOLD | 2026-11-23 | CURRENT |
+| MBX | HOLD | 2026-11-23 | CURRENT |
+| PACS | HOLD | 2026-11-23 | CURRENT |
+| TXG | HOLD | 2026-11-23 | CURRENT |
+| RVMD | HOLD | 2026-11-23 | CURRENT |
+| SYRE | HOLD | 2026-11-23 | CURRENT |
+| ORKA | HOLD | 2026-11-23 | CURRENT |
 | 603268.SS | HOLD | — | UNAVAILABLE |
-| AKFIS.IS | HOLD | 2026-11-23 | CURRENT |
+| AKFIS.IS | HOLD | 2026-11-24 | CURRENT |
 | ACICO.KW | HOLD | — | UNAVAILABLE |
-| 8362.T | HOLD | 2026-11-20 | CURRENT |
-| 8393.T | HOLD | 2026-11-20 | CURRENT |
-| 7389.T | HOLD | 2026-11-20 | CURRENT |
-| 8392.T | HOLD | 2026-11-20 | CURRENT |
-| CUPID.NS | HOLD | — | UNAVAILABLE |
+| 8362.T | HOLD | — | UNAVAILABLE |
+| 8393.T | HOLD | — | UNAVAILABLE |
+| 7389.T | HOLD | — | UNAVAILABLE |
+| 8392.T | HOLD | — | UNAVAILABLE |
+| CUPID.NS | HOLD | 2026-11-23 | CURRENT |
 | 0622.HK | HOLD | — | UNAVAILABLE |
-| ASB.WA | HOLD | 2026-11-23 | CURRENT |
+| ASB.WA | HOLD | 2026-11-24 | CURRENT |
 
 Portfolio risk: Aggregate risk unavailable until all holdings are valued; 20 current holdings versus target 12–15.
 
@@ -52,16 +52,16 @@ WLS benchmark: Supply an authorised WLS benchmark ticker; no proxy silently subs
 ### Current fundamental context and recent headlines
 Up to five holdings/candidates shown; all fundamentals and headlines are in audit.json. Snapshot ratios are descriptive, not point-in-time backtest inputs. Headlines require manual relevance and full-text checks; no sentiment score is inferred.
 
-**MU** — Profitable with positive reported revenue growth. P/E 9.54867; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
+**MU** — Profitable with positive reported revenue growth. P/E 8.4943495; revenue growth 3.793; margin 0.63796; debt/equity 3.743; FCF 29140250624.
 No recent accessible headlines returned (not evidence of no news).
 
 **CLMT** — Loss-making on reported margin. P/E None; revenue growth 0.561; margin -0.0373; debt/equity None; FCF 305112512.
 No recent accessible headlines returned (not evidence of no news).
 
-**ATEX** — Profitable with positive reported revenue growth. P/E 192.89474; revenue growth 0.262; margin 0.96226996; debt/equity 1.618; FCF -57858500.
+**ATEX** — Profitable with positive reported revenue growth. P/E 196.25; revenue growth 0.262; margin 0.96226996; debt/equity 1.618; FCF -57858500.
 No recent accessible headlines returned (not evidence of no news).
 
-**STX** — Profitable with positive reported revenue growth. P/E 27.180126; revenue growth 0.61; margin 0.31857002; debt/equity 77.382; FCF 2296750080.
+**STX** — Profitable with positive reported revenue growth. P/E 25.58364; revenue growth 0.61; margin 0.31857002; debt/equity 77.382; FCF 2296750080.
 No recent accessible headlines returned (not evidence of no news).
 
 **MBX** — Insufficient/neutral fundamental context. P/E None; revenue growth None; margin 0.0; debt/equity 0.696; FCF -54004752.
